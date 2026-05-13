@@ -1,0 +1,10 @@
+node_modules
+.env
+data/local-store.json
+data/local-store.json.tmp
+data/local-store.sqlite
+data/local-store.sqlite-shm
+data/local-store.sqlite-wal
+data/*.log
+.DS_Store
+npm-debug.log

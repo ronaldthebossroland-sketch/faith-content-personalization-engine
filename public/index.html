@@ -1,0 +1,823 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Faith Content Personalization Engine</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --bg: #f5f7f8;
+      --panel: #ffffff;
+      --panel-soft: #eef7f1;
+      --ink: #172026;
+      --muted: #60707c;
+      --line: #dbe3e8;
+      --accent: #0f766e;
+      --accent-dark: #115e59;
+      --warn: #a16207;
+      --danger: #b42318;
+      --navy: #26364a;
+      --shadow: 0 10px 28px rgba(18, 38, 63, 0.08);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-width: 320px;
+      font-family: Arial, Helvetica, sans-serif;
+      background: var(--bg);
+      color: var(--ink);
+    }
+
+    button,
+    input,
+    select,
+    textarea {
+      font: inherit;
+    }
+
+    button {
+      min-height: 40px;
+      border: 0;
+      border-radius: 8px;
+      padding: 10px 14px;
+      background: var(--accent);
+      color: #fff;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background: var(--accent-dark);
+    }
+
+    button.secondary {
+      background: var(--navy);
+    }
+
+    button.warning {
+      background: var(--warn);
+    }
+
+    button.danger {
+      background: var(--danger);
+    }
+
+    button.ghost {
+      background: #e8eef2;
+      color: var(--ink);
+    }
+
+    input,
+    select,
+    textarea {
+      width: 100%;
+      min-height: 40px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 9px 10px;
+      background: #fff;
+      color: var(--ink);
+    }
+
+    label {
+      display: block;
+      margin: 12px 0 6px;
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    pre {
+      min-height: 240px;
+      max-height: 520px;
+      margin: 0;
+      padding: 14px;
+      overflow: auto;
+      border-radius: 8px;
+      background: #101820;
+      color: #e5edf3;
+      font-size: 12px;
+      line-height: 1.5;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+
+    .shell {
+      width: min(1280px, 100%);
+      margin: 0 auto;
+      padding: 18px;
+    }
+
+    .topbar {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 14px;
+      align-items: center;
+      padding: 16px 0 18px;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .title h1 {
+      margin: 0;
+      font-size: clamp(22px, 4vw, 34px);
+      line-height: 1.1;
+      letter-spacing: 0;
+    }
+
+    .title p {
+      margin: 7px 0 0;
+      color: var(--muted);
+      line-height: 1.5;
+    }
+
+    .status-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      justify-content: flex-end;
+    }
+
+    .chip {
+      display: inline-flex;
+      align-items: center;
+      min-height: 30px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 6px 9px;
+      background: #fff;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .chip.good {
+      border-color: #b7dfca;
+      background: var(--panel-soft);
+      color: #14532d;
+    }
+
+    .chip.bad {
+      border-color: #f3b6b0;
+      background: #fff1f0;
+      color: var(--danger);
+    }
+
+    .layout {
+      display: grid;
+      grid-template-columns: minmax(300px, 420px) minmax(0, 1fr);
+      gap: 18px;
+      padding-top: 18px;
+    }
+
+    .stack {
+      display: grid;
+      gap: 14px;
+      align-content: start;
+    }
+
+    .panel {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--panel);
+      box-shadow: var(--shadow);
+      padding: 16px;
+    }
+
+    .panel h2,
+    .panel h3 {
+      margin: 0 0 12px;
+      font-size: 18px;
+      letter-spacing: 0;
+    }
+
+    .panel h3 {
+      font-size: 15px;
+      color: var(--muted);
+    }
+
+    .actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 12px;
+    }
+
+    .field-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 0 10px;
+    }
+
+    .checks {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 8px;
+      margin-top: 8px;
+    }
+
+    .check {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      min-height: 34px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 6px 8px;
+      color: var(--ink);
+      font-size: 13px;
+    }
+
+    .check input {
+      width: auto;
+      min-height: auto;
+    }
+
+    .metrics {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    .metric {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 12px;
+      background: #fff;
+    }
+
+    .metric span {
+      display: block;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .metric strong {
+      display: block;
+      margin-top: 7px;
+      font-size: 20px;
+      line-height: 1.2;
+      word-break: break-word;
+    }
+
+    .summary {
+      margin-top: 14px;
+      display: grid;
+      gap: 10px;
+    }
+
+    .notice {
+      border-left: 4px solid var(--accent);
+      padding: 10px 12px;
+      background: var(--panel-soft);
+      color: #1f3b2b;
+      line-height: 1.55;
+    }
+
+    .recommendations {
+      display: grid;
+      gap: 10px;
+      margin-top: 14px;
+    }
+
+    .recommendation {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 12px;
+      background: #fff;
+    }
+
+    .recommendation strong {
+      display: block;
+      margin-bottom: 5px;
+    }
+
+    .recommendation small {
+      color: var(--muted);
+      line-height: 1.4;
+    }
+
+    .split {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(300px, 420px);
+      gap: 14px;
+    }
+
+    .muted {
+      color: var(--muted);
+      line-height: 1.5;
+    }
+
+    .source-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-top: 8px;
+    }
+
+    @media (max-width: 980px) {
+      .layout,
+      .split {
+        grid-template-columns: 1fr;
+      }
+
+      .topbar {
+        grid-template-columns: 1fr;
+      }
+
+      .status-row {
+        justify-content: flex-start;
+      }
+    }
+
+    @media (max-width: 620px) {
+      .shell {
+        padding: 12px;
+      }
+
+      .field-grid,
+      .checks,
+      .metrics {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="shell">
+    <section class="topbar">
+      <div class="title">
+        <h1>Faith Content Personalization Engine</h1>
+        <p>Consent-first interest profiles for app and approved ministry-platform signals.</p>
+      </div>
+      <div class="status-row">
+        <span class="chip" id="apiStatus">API checking</span>
+        <span class="chip" id="geminiStatus">AI unknown</span>
+        <span class="chip" id="retentionStatus">Retention unknown</span>
+        <span class="chip" id="networkStatus">Network unknown</span>
+      </div>
+    </section>
+
+    <section class="layout">
+      <div class="stack">
+        <section class="panel">
+          <h2>User And Consent</h2>
+          <label for="anonymousUserId">Anonymous user ID</label>
+          <input id="anonymousUserId" placeholder="anon_..." />
+          <div class="actions">
+            <button onclick="createUser()">Create</button>
+            <button class="secondary" onclick="loadProfile()">Profile</button>
+            <button class="ghost" onclick="loadSettings()">Settings</button>
+          </div>
+
+          <h3>Consent Scopes</h3>
+          <div class="checks" id="scopeChecks"></div>
+          <div class="actions">
+            <button onclick="saveConsent(true)">Accept</button>
+            <button class="warning" onclick="saveConsent(false)">Turn Off</button>
+            <button class="danger" onclick="deleteUser()">Delete User</button>
+          </div>
+        </section>
+
+        <section class="panel">
+          <h2>Phone Test</h2>
+          <p class="muted">Open one of these LAN URLs from a phone on the same Wi-Fi network, then create a user and accept consent scopes before tracking test signals.</p>
+          <div class="source-list" id="lanUrls">
+            <span class="chip">Loading network URLs</span>
+          </div>
+          <div class="actions">
+            <button class="ghost" onclick="loadNetworkInfo()">Refresh URLs</button>
+          </div>
+        </section>
+
+        <section class="panel">
+          <h2>Track Signal</h2>
+          <label for="eventType">Event type</label>
+          <select id="eventType"></select>
+
+          <label for="source">Source</label>
+          <select id="source"></select>
+
+          <div class="field-grid">
+            <div>
+              <label for="topic">Topic</label>
+              <input id="topic" value="healing testimonies" />
+            </div>
+            <div>
+              <label for="contentType">Content type</label>
+              <select id="contentType">
+                <option value="video">Video</option>
+                <option value="short_video">Short Video</option>
+                <option value="article">Article</option>
+                <option value="guide">Guide</option>
+                <option value="program">Program</option>
+                <option value="campaign_link">Campaign Link</option>
+                <option value="search">Search</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="field-grid">
+            <div>
+              <label for="contentId">Content ID</label>
+              <input id="contentId" value="content_002" />
+            </div>
+            <div>
+              <label for="timeSpentSeconds">Seconds</label>
+              <input id="timeSpentSeconds" type="number" min="0" value="180" />
+            </div>
+          </div>
+
+          <div class="field-grid">
+            <div>
+              <label for="campaignId">Campaign ID</label>
+              <input id="campaignId" value="healing_streams_2026" />
+            </div>
+            <div>
+              <label for="page">Page</label>
+              <input id="page" value="registration" />
+            </div>
+          </div>
+
+          <div class="actions">
+            <button onclick="trackEvent()">Track</button>
+            <button class="secondary" onclick="getRecommendations()">Recommendations</button>
+            <button class="warning" onclick="resetProfile()">Reset Profile</button>
+          </div>
+        </section>
+
+        <section class="panel">
+          <h2>Preferences</h2>
+          <div class="field-grid">
+            <div>
+              <label for="language">Language</label>
+              <input id="language" value="en" />
+            </div>
+            <div>
+              <label for="country">Country</label>
+              <input id="country" value="unspecified" />
+            </div>
+          </div>
+          <label for="ageGroup">Audience</label>
+          <select id="ageGroup">
+            <option value="general">General</option>
+            <option value="adult">Adult</option>
+            <option value="family">Family</option>
+            <option value="youth">Youth</option>
+          </select>
+          <label for="preferredFormats">Preferred formats</label>
+          <input id="preferredFormats" value="video,article" />
+          <label for="preferredTopics">Preferred topics</label>
+          <input id="preferredTopics" value="healing streams, prayer" />
+          <label for="blockedTopics">Blocked topics</label>
+          <input id="blockedTopics" placeholder="Optional" />
+          <div class="actions">
+            <button onclick="savePreferences()">Save Preferences</button>
+          </div>
+        </section>
+
+        <section class="panel">
+          <h2>Admin</h2>
+          <label for="adminKey">Admin API key</label>
+          <input id="adminKey" type="password" placeholder="ADMIN_API_KEY" />
+          <div class="actions">
+            <button class="secondary" onclick="loadAdminEvents()">Events</button>
+            <button class="secondary" onclick="loadConsentHistory()">Consent</button>
+            <button class="warning" onclick="runRetention()">Run Retention</button>
+          </div>
+        </section>
+      </div>
+
+      <div class="stack">
+        <section class="panel">
+          <h2>Profile</h2>
+          <div class="metrics">
+            <div class="metric">
+              <span>Persona</span>
+              <strong id="persona">-</strong>
+            </div>
+            <div class="metric">
+              <span>Engagement</span>
+              <strong id="engagement">-</strong>
+            </div>
+            <div class="metric">
+              <span>Events</span>
+              <strong id="eventCount">0</strong>
+            </div>
+            <div class="metric">
+              <span>Format</span>
+              <strong id="format">-</strong>
+            </div>
+          </div>
+          <div class="summary">
+            <div class="notice" id="aiSummary">No profile loaded yet.</div>
+            <div class="muted" id="rationale"></div>
+            <div>
+              <strong>Approved sources used</strong>
+              <div class="source-list" id="sourceCounts"></div>
+            </div>
+          </div>
+          <div class="recommendations" id="recommendations"></div>
+        </section>
+
+        <section class="split">
+          <div class="panel">
+            <h2>Privacy Notice</h2>
+            <div class="notice" id="privacyNotice">Loading notice.</div>
+            <div class="source-list" id="approvedSources"></div>
+          </div>
+          <div class="panel">
+            <h2>API Response</h2>
+            <pre id="output">Ready.</pre>
+          </div>
+        </section>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    const apiBase = '';
+    let appConfig = {
+      allowedEventTypes: [],
+      consentScopes: [],
+      defaultConsentScopes: [],
+      approvedEventSources: []
+    };
+
+    const output = document.getElementById('output');
+    const userInput = document.getElementById('anonymousUserId');
+    const adminKeyInput = document.getElementById('adminKey');
+
+    userInput.value = localStorage.getItem('anonymousUserId') || '';
+    adminKeyInput.value = localStorage.getItem('adminKey') || '';
+
+    function show(data) {
+      output.textContent = JSON.stringify(data, null, 2);
+    }
+
+    function splitList(value) {
+      return String(value || '')
+        .split(',')
+        .map(item => item.trim())
+        .filter(Boolean);
+    }
+
+    async function request(path, options = {}) {
+      const response = await fetch(apiBase + path, {
+        ...options,
+        headers: {
+          'Content-Type': 'application/json',
+          ...(options.headers || {})
+        }
+      });
+      const data = await response.json().catch(() => ({ success: false, message: 'Invalid JSON response.' }));
+      show(data);
+      if (!response.ok) throw data;
+      return data;
+    }
+
+    function currentUserId() {
+      const anonymousUserId = userInput.value.trim();
+      if (!anonymousUserId) {
+        alert('Create or paste an anonymous user ID first.');
+        throw new Error('Missing anonymous user ID.');
+      }
+      localStorage.setItem('anonymousUserId', anonymousUserId);
+      return anonymousUserId;
+    }
+
+    function adminHeaders() {
+      const key = adminKeyInput.value.trim();
+      if (key) localStorage.setItem('adminKey', key);
+      return { 'x-admin-api-key': key };
+    }
+
+    function setChip(id, text, state) {
+      const element = document.getElementById(id);
+      element.textContent = text;
+      element.className = 'chip' + (state ? ' ' + state : '');
+    }
+
+    function renderConfig(config) {
+      appConfig = config;
+      const eventType = document.getElementById('eventType');
+      eventType.innerHTML = config.allowedEventTypes
+        .map(type => `<option value="${type}">${type.replaceAll('_', ' ')}</option>`)
+        .join('');
+      eventType.value = 'video_watched';
+
+      const source = document.getElementById('source');
+      source.innerHTML = config.approvedEventSources
+        .map(item => `<option value="${item}">${item.replaceAll('_', ' ')}</option>`)
+        .join('');
+
+      const checks = document.getElementById('scopeChecks');
+      checks.innerHTML = config.consentScopes.map(scope => {
+        const checked = config.defaultConsentScopes.includes(scope) ? 'checked' : '';
+        return `<label class="check"><input type="checkbox" value="${scope}" ${checked} /> ${scope.replaceAll('_', ' ')}</label>`;
+      }).join('');
+
+      document.getElementById('approvedSources').innerHTML = config.approvedEventSources
+        .map(item => `<span class="chip good">${item}</span>`)
+        .join('');
+    }
+
+    function renderNetworkInfo(info) {
+      setChip('networkStatus', info.phoneTestingEnabled ? 'LAN enabled' : 'Local only', info.phoneTestingEnabled ? 'good' : '');
+      const urls = info.lanUrls && info.lanUrls.length ? info.lanUrls : [info.localUrl];
+      document.getElementById('lanUrls').innerHTML = urls
+        .map(url => `<span class="chip good">${url}</span>`)
+        .join('');
+    }
+
+    function selectedScopes() {
+      return Array.from(document.querySelectorAll('#scopeChecks input:checked')).map(input => input.value);
+    }
+
+    function renderProfile(profile) {
+      document.getElementById('persona').textContent = profile.persona || '-';
+      document.getElementById('engagement').textContent = profile.engagementLevel || '-';
+      document.getElementById('eventCount').textContent = String(profile.totalEvents || 0);
+      document.getElementById('format').textContent = (profile.preferredContentType || '-').replaceAll('_', ' ');
+      document.getElementById('aiSummary').textContent = profile.aiSummary || 'No summary yet.';
+      document.getElementById('rationale').textContent = profile.recommendationRationale || '';
+
+      const sourceCounts = profile.sourceCounts || {};
+      document.getElementById('sourceCounts').innerHTML = Object.keys(sourceCounts).length
+        ? Object.entries(sourceCounts).map(([source, count]) => `<span class="chip">${source}: ${count}</span>`).join('')
+        : '<span class="chip">No signals</span>';
+
+      document.getElementById('recommendations').innerHTML = (profile.recommendedContent || []).map(item => `
+        <div class="recommendation">
+          <strong>${item.title}</strong>
+          <small>${item.topic.replaceAll('_', ' ')} / ${item.type.replaceAll('_', ' ')} / score ${item.recommendationScore}</small><br />
+          <small>${(item.reasons || []).join(', ')}</small>
+        </div>
+      `).join('');
+
+      if (profile.preferences) {
+        document.getElementById('language').value = profile.preferences.language || 'en';
+        document.getElementById('country').value = profile.preferences.country || 'unspecified';
+        document.getElementById('ageGroup').value = profile.preferences.ageGroup || 'general';
+        document.getElementById('preferredFormats').value = (profile.preferences.preferredFormats || []).join(', ');
+        document.getElementById('preferredTopics').value = (profile.preferences.preferredTopics || []).join(', ');
+        document.getElementById('blockedTopics').value = (profile.preferences.blockedTopics || []).join(', ');
+      }
+    }
+
+    async function boot() {
+      try {
+        const health = await request('/api/health');
+        setChip('apiStatus', 'API online', 'good');
+        setChip('geminiStatus', health.geminiEnabled ? 'AI enabled' : 'AI fallback', health.geminiEnabled ? 'good' : '');
+        setChip('retentionStatus', `${health.dataRetentionDays} day retention`, '');
+
+        const config = await request('/api/config');
+        renderConfig(config);
+
+        await loadNetworkInfo();
+
+        const notice = await request('/api/privacy-notice');
+        document.getElementById('privacyNotice').textContent = notice.notice;
+
+        if (userInput.value.trim()) loadProfile();
+      } catch (err) {
+        setChip('apiStatus', 'API offline', 'bad');
+      }
+    }
+
+    async function loadNetworkInfo() {
+      const data = await request('/api/network-info');
+      renderNetworkInfo(data);
+    }
+
+    async function createUser() {
+      const data = await request('/api/users/anonymous', {
+        method: 'POST',
+        body: JSON.stringify({
+          preferences: {
+            language: document.getElementById('language').value,
+            country: document.getElementById('country').value,
+            ageGroup: document.getElementById('ageGroup').value,
+            preferredFormats: splitList(document.getElementById('preferredFormats').value),
+            preferredTopics: splitList(document.getElementById('preferredTopics').value),
+            blockedTopics: splitList(document.getElementById('blockedTopics').value)
+          }
+        })
+      });
+      userInput.value = data.anonymousUserId;
+      localStorage.setItem('anonymousUserId', data.anonymousUserId);
+      renderProfile(data.profile);
+    }
+
+    async function saveConsent(consent) {
+      const data = await request('/api/consent', {
+        method: 'POST',
+        body: JSON.stringify({
+          anonymousUserId: currentUserId(),
+          consent,
+          consentTextVersion: '1.1',
+          scopes: selectedScopes(),
+          source: 'demo_dashboard'
+        })
+      });
+      renderProfile(data.profile);
+    }
+
+    async function savePreferences() {
+      const data = await request('/api/users/' + currentUserId() + '/preferences', {
+        method: 'POST',
+        body: JSON.stringify({
+          language: document.getElementById('language').value,
+          country: document.getElementById('country').value,
+          ageGroup: document.getElementById('ageGroup').value,
+          preferredFormats: splitList(document.getElementById('preferredFormats').value),
+          preferredTopics: splitList(document.getElementById('preferredTopics').value),
+          blockedTopics: splitList(document.getElementById('blockedTopics').value)
+        })
+      });
+      renderProfile(data.profile);
+    }
+
+    async function trackEvent() {
+      const data = await request('/api/events/track', {
+        method: 'POST',
+        body: JSON.stringify({
+          anonymousUserId: currentUserId(),
+          eventType: document.getElementById('eventType').value,
+          topic: document.getElementById('topic').value,
+          contentType: document.getElementById('contentType').value,
+          source: document.getElementById('source').value,
+          timeSpentSeconds: Number(document.getElementById('timeSpentSeconds').value || 0),
+          metadata: {
+            contentId: document.getElementById('contentId').value,
+            campaignId: document.getElementById('campaignId').value,
+            platform: document.getElementById('source').value,
+            page: document.getElementById('page').value,
+            language: document.getElementById('language').value
+          }
+        })
+      });
+      renderProfile(data.profile);
+    }
+
+    async function loadProfile() {
+      const data = await request('/api/profiles/' + currentUserId());
+      renderProfile(data.profile);
+    }
+
+    async function getRecommendations() {
+      const data = await request('/api/recommendations/' + currentUserId());
+      document.getElementById('recommendations').innerHTML = (data.recommendations || []).map(item => `
+        <div class="recommendation">
+          <strong>${item.title}</strong>
+          <small>${item.topic.replaceAll('_', ' ')} / ${item.type.replaceAll('_', ' ')} / score ${item.recommendationScore}</small><br />
+          <small>${(item.reasons || []).join(', ')}</small>
+        </div>
+      `).join('');
+    }
+
+    async function loadSettings() {
+      const data = await request('/api/users/' + currentUserId() + '/settings');
+      const scopes = new Set(data.settings.consentScopes || []);
+      document.querySelectorAll('#scopeChecks input').forEach(input => {
+        input.checked = scopes.has(input.value);
+      });
+    }
+
+    async function resetProfile() {
+      const data = await request('/api/profiles/' + currentUserId() + '/reset', { method: 'POST' });
+      renderProfile(data.profile);
+    }
+
+    async function deleteUser() {
+      if (!confirm('Delete this anonymous user and all tracked events?')) return;
+      await request('/api/users/' + currentUserId(), { method: 'DELETE' });
+      userInput.value = '';
+      localStorage.removeItem('anonymousUserId');
+    }
+
+    async function loadAdminEvents() {
+      await request('/api/admin/events', { headers: adminHeaders() });
+    }
+
+    async function loadConsentHistory() {
+      await request('/api/admin/consent-history', { headers: adminHeaders() });
+    }
+
+    async function runRetention() {
+      await request('/api/admin/retention/run', {
+        method: 'POST',
+        headers: adminHeaders()
+      });
+    }
+
+    boot();
+  </script>
+</body>
+</html>

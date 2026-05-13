@@ -1,0 +1,30 @@
+[
+  {
+    "eventType": "search_topic",
+    "topic": "faith for healing",
+    "contentType": "search",
+    "source": "healing_school_app",
+    "timeSpentSeconds": 0
+  },
+  {
+    "eventType": "video_watched",
+    "topic": "healing testimonies",
+    "contentType": "video",
+    "source": "healing_school_app",
+    "timeSpentSeconds": 240
+  },
+  {
+    "eventType": "external_campaign_click",
+    "topic": "Healing Streams registration",
+    "contentType": "campaign_link",
+    "source": "approved_healing_school_campaign",
+    "timeSpentSeconds": 15
+  },
+  {
+    "eventType": "content_saved",
+    "topic": "prayer preparation",
+    "contentType": "article",
+    "source": "healing_school_app",
+    "timeSpentSeconds": 180
+  }
+]

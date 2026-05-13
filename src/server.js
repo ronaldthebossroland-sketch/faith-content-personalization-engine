@@ -8,7 +8,7 @@ const cors = require('cors');
 const helmet = require('helmet');
 const morgan = require('morgan');
 const { v4: uuidv4 } = require('uuid');
-const { GoogleGenerativeAI } = require('@google/generative-ai');
+const { GoogleGenAI } = require('@google/genai');
 
 let DatabaseSync = null;
 try {
@@ -511,7 +511,7 @@ function createRuntime(options = {}) {
   const store = migrateStore(loadStore(config));
   const approvedSourceSet = new Set(config.approvedEventSources);
   const genAI = isGeminiKeyUsable(config.geminiApiKey)
-    ? new GoogleGenerativeAI(config.geminiApiKey)
+    ? new GoogleGenAI({ apiKey: config.geminiApiKey })
     : null;
 
   function saveStore() {
@@ -606,6 +606,25 @@ function createRuntime(options = {}) {
     return 'General Believer';
   }
 
+  // Derives a spending/support pattern label from interest signals.
+  // Based on content engagement — not actual financial data.
+  function detectSpendingPattern(topTopics, eventTypeCounts) {
+    if (!topTopics.length) return 'Not enough data';
+
+    const topicSet = new Set(topTopics.map(t => t.topic));
+    const partnershipScore = topTopics.find(t => t.topic === 'partnership_impact')?.score || 0;
+    const healingStreamsScore = topTopics.find(t => t.topic === 'healing_streams')?.score || 0;
+    const campaignClicks = eventTypeCounts.external_campaign_click || 0;
+    const programInterest = eventTypeCounts.program_interest || 0;
+    const shares = eventTypeCounts.content_shared || 0;
+
+    if (partnershipScore > 20 || programInterest >= 2) return 'Partnership-related';
+    if (healingStreamsScore > 15 || campaignClicks >= 2) return 'Event-focused (Healing Streams supporter)';
+    if (shares >= 3) return 'Content advocate';
+    if (topicSet.has('devotional') || topicSet.has('prayer')) return 'Devotional engagement';
+    return 'General interest';
+  }
+
   async function generateAISummary({
     user,
     persona,
@@ -673,9 +692,11 @@ Respond only with valid JSON:
 }`;
 
     try {
-      const model = genAI.getGenerativeModel({ model: config.geminiModel });
-      const result = await model.generateContent(prompt);
-      const raw = result.response.text().replace(/```json|```/g, '').trim();
+      const result = await genAI.models.generateContent({
+        model: config.geminiModel,
+        contents: prompt
+      });
+      const raw = result.text.replace(/```json|```/g, '').trim();
       const parsed = JSON.parse(raw);
       return {
         aiSummary: parsed.aiSummary || fallback,
@@ -780,9 +801,13 @@ Respond only with valid JSON:
     if (totalScore >= 80) engagementLevel = 'high';
     else if (totalScore >= 35) engagementLevel = 'medium';
 
+    // Cap at 200 points = 100% — gives a meaningful scale without capping too early
+    const engagementScore = Math.min(Math.round((totalScore / 200) * 100), 100);
+
     const topInterests = sortedTopics.slice(0, 5).map(item => item.topic);
     const preferredContentType = sortedContentTypes[0]?.type || 'mixed_content';
     const persona = detectPersona(sortedTopics, eventTypeCounts);
+    const spendingPattern = detectSpendingPattern(sortedTopics, eventTypeCounts);
 
     const now = Date.now();
     const accountAgeDays = Math.max(0, Math.floor((now - new Date(user.createdAt).getTime()) / 86400000));
@@ -813,6 +838,8 @@ Respond only with valid JSON:
       topInterests,
       preferredContentType,
       engagementLevel,
+      engagementScore,
+      spendingPattern,
       topicScores,
       contentTypeScores,
       eventTypeCounts,

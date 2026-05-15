@@ -3,6 +3,7 @@ const assert = require('node:assert/strict');
 const fs = require('fs');
 const os = require('os');
 const path = require('path');
+const vm = require('vm');
 const { createRuntime } = require('../src/server');
 
 function createTestRuntime(options = {}) {
@@ -159,6 +160,121 @@ test('admin endpoints require the configured API key', async () => {
     });
     assert.equal(allowed.response.status, 200);
     assert.equal(allowed.data.success, true);
+  });
+});
+
+test('admin user summaries expose all source counts for dashboard grouping', async () => {
+  const { runtime } = createTestRuntime({
+    approvedEventSources: 'healing_school_app,source_one,source_two,source_three'
+  });
+
+  await withServer(runtime, async baseUrl => {
+    const anonymousUserId = await createUser(baseUrl);
+    await saveConsent(baseUrl, anonymousUserId, [
+      'app_activity',
+      'approved_platform_activity',
+      'recommendations'
+    ]);
+
+    for (const source of ['healing_school_app', 'source_one', 'source_two', 'source_three']) {
+      const tracked = await jsonRequest(baseUrl, '/api/events/track', {
+        method: 'POST',
+        body: JSON.stringify({
+          anonymousUserId,
+          eventType: 'content_viewed',
+          topic: source,
+          contentType: 'article',
+          source
+        })
+      });
+      assert.equal(tracked.response.status, 201);
+    }
+
+    const adminSources = await jsonRequest(baseUrl, '/api/admin/sources', {
+      headers: { 'x-admin-api-key': 'test-admin-key' }
+    });
+    const sourceThree = adminSources.data.sources.find(item => item.source === 'source_three');
+    assert.equal(sourceThree.uniqueUsers, 1);
+
+    const adminUsers = await jsonRequest(baseUrl, '/api/admin/users', {
+      headers: { 'x-admin-api-key': 'test-admin-key' }
+    });
+    assert.equal(adminUsers.response.status, 200);
+    assert.equal(adminUsers.data.users[0].totalEvents, 4);
+    assert.equal(adminUsers.data.users[0].sourceCounts.source_three, 1);
+  });
+});
+
+test('embed script waits for consent before creating a user or tracking', async () => {
+  const { runtime } = createTestRuntime();
+
+  await withServer(runtime, async baseUrl => {
+    const response = await fetch(baseUrl + '/embed.js?source=approved_campaign');
+    assert.equal(response.status, 200);
+
+    const script = await response.text();
+    assert.doesNotThrow(() => new Function(script));
+
+    const calls = [];
+    const storage = {};
+    const elements = {};
+    const banner = {
+      id: '',
+      style: {},
+      innerHTML: '',
+      remove() {
+        delete elements[this.id];
+      }
+    };
+
+    const context = {
+      fetch: async (url, options) => {
+        calls.push({ url, options });
+        let body = {};
+        if (url.endsWith('/api/users/anonymous')) body = { success: true, anonymousUserId: 'anon_embed_test' };
+        if (url.endsWith('/api/consent')) body = { success: true };
+        if (url.endsWith('/api/events/track')) body = { success: true };
+        return { ok: true, json: async () => body };
+      },
+      localStorage: {
+        getItem: key => storage[key] ?? null,
+        setItem: (key, value) => {
+          storage[key] = String(value);
+        }
+      },
+      location: { pathname: '/watch' },
+      document: {
+        readyState: 'complete',
+        getElementById: id => elements[id] || null,
+        createElement: () => banner,
+        addEventListener: () => {},
+        body: {
+          appendChild: el => {
+            elements[el.id] = el;
+            elements['fe-accept'] = { onclick: null };
+            elements['fe-decline'] = { onclick: null };
+          }
+        }
+      },
+      window: {}
+    };
+
+    vm.runInNewContext(script, context);
+    assert.equal(calls.length, 0);
+    assert.equal(storage.faith_uid_approved_campaign, undefined);
+    assert.ok(elements['faith-engine-banner']);
+
+    elements['fe-accept'].onclick();
+    await new Promise(resolve => setImmediate(resolve));
+    await new Promise(resolve => setImmediate(resolve));
+
+    assert.deepEqual(calls.map(call => new URL(call.url).pathname), [
+      '/api/users/anonymous',
+      '/api/consent',
+      '/api/events/track'
+    ]);
+    assert.equal(storage.faith_uid_approved_campaign, 'anon_embed_test');
+    assert.equal(storage.faith_consent_approved_campaign, 'true');
   });
 });
 

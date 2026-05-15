@@ -887,6 +887,230 @@ Respond only with valid JSON:
   if (config.logRequests) app.use(morgan('dev'));
   app.use(express.static(path.join(__dirname, '../public')));
 
+  app.get('/embed.js', (req, res) => {
+    const rawSource = req.query.source || config.approvedEventSources[0] || 'healing_school_app';
+    const source = config.approvedEventSources.includes(normalizeKey(rawSource))
+      ? normalizeKey(rawSource)
+      : config.approvedEventSources[0] || 'healing_school_app';
+    const forwardedProto = String(req.headers['x-forwarded-proto'] || '')
+      .split(',')[0]
+      .trim()
+      .toLowerCase();
+    const proto = forwardedProto === 'https' || req.secure ? 'https' : 'http';
+    const host = String(req.headers.host || `localhost:${config.port}`)
+      .replace(/[^A-Za-z0-9.:[\]-]/g, '') || `localhost:${config.port}`;
+    const serverUrl = `${proto}://${host}`;
+    const serverLiteral = JSON.stringify(serverUrl);
+    const sourceLiteral = JSON.stringify(source);
+
+    res.setHeader('Content-Type', 'application/javascript; charset=utf-8');
+    res.setHeader('Cache-Control', 'public, max-age=300');
+    res.send(`/* Faith Content Personalization Engine — embed.js
+ * Source : ${source}
+ * Server : ${serverUrl}
+ * Drop-in: <script src="${serverUrl}/embed.js?source=${source}"></script>
+ * Manual : FaithEngine.track(eventType, topic, options)
+ *
+ * Auto-tracked: page views, time on page, search queries, SPA navigation
+ */
+(function (SERVER, SOURCE) {
+  var UID_KEY     = 'faith_uid_'     + SOURCE;
+  var CONSENT_KEY = 'faith_consent_' + SOURCE;
+
+  // Search param names to detect as searches
+  var SEARCH_PARAMS = ['q', 'search', 'query', 'keyword', 's', 'term'];
+
+  // URL path keywords → faith topic
+  var TOPIC_MAP = {
+    healing: 'healing_testimonies', testimony: 'healing_testimonies',
+    testimonies: 'healing_testimonies', prayer: 'prayer', pray: 'prayer',
+    devotional: 'devotional', partner: 'partnership_impact',
+    partnership: 'partnership_impact', family: 'family_healing',
+    children: 'family_healing', faith: 'faith_for_healing',
+    streams: 'healing_streams', confession: 'faith_confessions'
+  };
+
+  var userId    = null;
+  var consented = false;
+  var pageStart = Date.now();
+  var pagePath  = location.pathname;
+
+  function storageGet(k) { try { return localStorage.getItem(k); } catch (e) { return null; } }
+  function storageSet(k, v) { try { localStorage.setItem(k, v); } catch (e) {} }
+
+  userId    = storageGet(UID_KEY);
+  consented = storageGet(CONSENT_KEY) === 'true';
+
+  // ── HTTP helpers ─────────────────────────────────────────────────────────
+  function post(path, body) {
+    return fetch(SERVER + path, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body)
+    }).then(function (r) {
+      return r.json().catch(function () { return {}; }).then(function (d) {
+        if (!r.ok) throw d;
+        return d;
+      });
+    });
+  }
+
+  // Reliable fire-and-forget for page unload
+  function beacon(body) {
+    try {
+      navigator.sendBeacon(
+        SERVER + '/api/events/track',
+        new Blob([JSON.stringify(body)], { type: 'application/json' })
+      );
+    } catch (e) {}
+  }
+
+  // ── User & consent ───────────────────────────────────────────────────────
+  function ensureUser() {
+    if (userId) return Promise.resolve();
+    return post('/api/users/anonymous', {}).then(function (d) {
+      userId = d.anonymousUserId;
+      storageSet(UID_KEY, userId);
+    });
+  }
+
+  function acceptConsent() {
+    return ensureUser().then(function () {
+      return post('/api/consent', {
+        anonymousUserId: userId,
+        consent: true,
+        consentTextVersion: '1.1',
+        scopes: ['app_activity', 'approved_platform_activity', 'recommendations', 'ai_summary'],
+        source: SOURCE
+      });
+    }).then(function () {
+      consented = true;
+      storageSet(CONSENT_KEY, 'true');
+    });
+  }
+
+  function declineConsent() {
+    consented = false;
+    storageSet(CONSENT_KEY, 'false');
+  }
+
+  // ── Topic inference from URL ─────────────────────────────────────────────
+  function inferTopic(path, search) {
+    var text = ((path || '') + ' ' + (search || '')).toLowerCase();
+    for (var kw in TOPIC_MAP) {
+      if (text.indexOf(kw) !== -1) return TOPIC_MAP[kw];
+    }
+    return 'general_faith_content';
+  }
+
+  // ── Tracking ─────────────────────────────────────────────────────────────
+  function track(eventType, topic, options) {
+    if (!userId) return Promise.resolve();
+    return post('/api/events/track', Object.assign(
+      { anonymousUserId: userId, eventType: eventType,
+        topic: topic || inferTopic(location.pathname, location.search),
+        source: SOURCE },
+      options || {}
+    )).catch(function () {});
+  }
+
+  // Track page view with topic inferred from URL
+  function trackPageView() {
+    track('content_viewed', inferTopic(location.pathname, location.search), {
+      metadata: { page: location.pathname }
+    });
+  }
+
+  // Detect search query in the current URL
+  function detectSearch() {
+    var params = new URLSearchParams(location.search);
+    for (var i = 0; i < SEARCH_PARAMS.length; i++) {
+      var val = params.get(SEARCH_PARAMS[i]);
+      if (val && val.trim()) {
+        track('search_topic', val.trim(), { metadata: { page: location.pathname } });
+        return;
+      }
+    }
+  }
+
+  // Send time-on-page via beacon (works on tab close / navigate away)
+  function sendTimeOnPage() {
+    if (!userId) return;
+    var seconds = Math.floor((Date.now() - pageStart) / 1000);
+    if (seconds < 10) return; // ignore bounces under 10s
+    beacon({
+      anonymousUserId: userId,
+      eventType: 'content_viewed',
+      topic: inferTopic(pagePath, ''),
+      source: SOURCE,
+      timeSpentSeconds: Math.min(seconds, 28800),
+      metadata: { page: pagePath }
+    });
+  }
+
+  // Handle SPA navigation (pushState / popstate)
+  function onNavigate() {
+    sendTimeOnPage();
+    pageStart = Date.now();
+    pagePath  = location.pathname;
+    setTimeout(function () { trackPageView(); detectSearch(); }, 150);
+  }
+
+  // ── Hooks ────────────────────────────────────────────────────────────────
+  function hookNavigation() {
+    var origPush = history.pushState.bind(history);
+    history.pushState = function () { origPush.apply(history, arguments); onNavigate(); };
+    window.addEventListener('popstate', onNavigate);
+  }
+
+  function hookTimeOnPage() {
+    window.addEventListener('beforeunload', sendTimeOnPage);
+    // Also send on visibility change (mobile tab switch)
+    document.addEventListener('visibilitychange', function () {
+      if (document.visibilityState === 'hidden') sendTimeOnPage();
+    });
+  }
+
+  // Auto-detect search form submissions
+  function hookSearchForms() {
+    document.addEventListener('submit', function (e) {
+      var input = e.target.querySelector(
+        'input[type="search"],input[name="q"],input[name="search"],' +
+        'input[name="query"],input[name="keyword"],input[name="s"]'
+      );
+      if (input && input.value.trim()) {
+        track('search_topic', input.value.trim(), { metadata: { page: location.pathname } });
+      }
+    });
+  }
+
+  function startTracking() {
+    trackPageView();
+    detectSearch();
+    hookNavigation();
+    hookTimeOnPage();
+    hookSearchForms();
+  }
+
+  // ── Boot ─────────────────────────────────────────────────────────────────
+  function init() {
+    ensureUser().then(startTracking).catch(function () {});
+  }
+
+  window.FaithEngine = {
+    track: track,
+    getUserId: function () { return userId; }
+  };
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', init);
+  } else {
+    init();
+  }
+})(${serverLiteral}, ${sourceLiteral});
+`);
+  });
+
   app.get('/api/health', (req, res) => {
     res.json({
       success: true,
@@ -1190,6 +1414,102 @@ Respond only with valid JSON:
       retainedEvents: store.events.length,
       dataRetentionDays: config.dataRetentionDays
     });
+  });
+
+  app.get('/api/admin/sources', requireAdmin, (req, res) => {
+    const sourceCounts = {};
+    const sourceUsers = {};
+    const sourceTopics = {};
+    const sourceLastEvent = {};
+
+    for (const source of config.approvedEventSources) {
+      sourceCounts[source] = 0;
+      sourceUsers[source] = new Set();
+      sourceTopics[source] = {};
+      sourceLastEvent[source] = null;
+    }
+
+    for (const event of store.events) {
+      const { source } = event;
+      if (!Object.hasOwn(sourceCounts, source)) {
+        sourceCounts[source] = 0;
+        sourceUsers[source] = new Set();
+        sourceTopics[source] = {};
+        sourceLastEvent[source] = null;
+      }
+      sourceCounts[source]++;
+      sourceUsers[source].add(event.anonymousUserId);
+      const topic = event.topic || 'unknown';
+      sourceTopics[source][topic] = (sourceTopics[source][topic] || 0) + 1;
+      if (!sourceLastEvent[source] || event.createdAt > sourceLastEvent[source]) {
+        sourceLastEvent[source] = event.createdAt;
+      }
+    }
+
+    const sources = config.approvedEventSources.map(source => ({
+      source,
+      eventCount: sourceCounts[source] || 0,
+      uniqueUsers: (sourceUsers[source] || new Set()).size,
+      topTopics: Object.entries(sourceTopics[source] || {})
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 5)
+        .map(([topic, count]) => ({ topic, count })),
+      lastEventAt: sourceLastEvent[source] || null
+    }));
+
+    res.json({
+      success: true,
+      sources,
+      totalEvents: store.events.length,
+      totalUsers: Object.keys(store.users).length
+    });
+  });
+
+  app.get('/api/admin/users', requireAdmin, (req, res) => {
+    const users = Object.values(store.users).map(user => {
+      const userEvents = store.events.filter(e => e.anonymousUserId === user.anonymousUserId);
+      const sourceCounts = Object.create(null);
+      const topicCounts = Object.create(null);
+      const eventTypeCounts = Object.create(null);
+
+      for (const event of userEvents) {
+        sourceCounts[event.source] = (sourceCounts[event.source] || 0) + 1;
+        topicCounts[event.topic] = (topicCounts[event.topic] || 0) + 1;
+        eventTypeCounts[event.eventType] = (eventTypeCounts[event.eventType] || 0) + 1;
+      }
+
+      const topSources = Object.entries(sourceCounts)
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 3)
+        .map(([s]) => s);
+
+      const sortedTopics = Object.entries(topicCounts)
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 5)
+        .map(([topic, count]) => ({ topic, score: count }));
+
+      const persona = detectPersona(sortedTopics, eventTypeCounts);
+      const totalWeight = sortedTopics.reduce((sum, t) => sum + t.score, 0);
+      const engagementLevel = userEvents.length === 0
+        ? 'none'
+        : totalWeight >= 20 ? 'high' : totalWeight >= 6 ? 'medium' : 'low';
+
+      return {
+        anonymousUserId: user.anonymousUserId,
+        consent: user.consent,
+        consentScopes: user.consentScopes || [],
+        totalEvents: userEvents.length,
+        topSources,
+        sourceCounts,
+        topTopics: sortedTopics.map(t => t.topic),
+        persona,
+        engagementLevel,
+        createdAt: user.createdAt,
+        lastUpdatedAt: user.lastUpdatedAt
+      };
+    });
+
+    res.json({ success: true, count: users.length, users });
   });
 
   return {

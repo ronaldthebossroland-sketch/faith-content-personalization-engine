@@ -3,592 +3,751 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Faith Content Personalization Engine</title>
+  <title>Faith Content Engine</title>
   <style>
     :root {
-      color-scheme: light;
-      --bg: #f5f7f8;
-      --panel: #ffffff;
-      --panel-soft: #eef7f1;
-      --ink: #172026;
-      --muted: #60707c;
-      --line: #dbe3e8;
-      --accent: #0f766e;
-      --accent-dark: #115e59;
-      --warn: #a16207;
-      --danger: #b42318;
-      --navy: #26364a;
-      --shadow: 0 10px 28px rgba(18, 38, 63, 0.08);
+      --bg: #f1f5f9;
+      --surface: #ffffff;
+      --border: #e2e8f0;
+      --primary: #0f766e;
+      --primary-hover: #0d9488;
+      --primary-light: #ccfbf1;
+      --text: #0f172a;
+      --muted: #64748b;
+      --green: #16a34a;
+      --green-bg: #f0fdf4;
+      --green-border: #86efac;
+      --yellow: #ca8a04;
+      --yellow-bg: #fefce8;
+      --red: #dc2626;
+      --red-bg: #fef2f2;
+      --navy: #1e293b;
+      --radius: 10px;
+      --shadow: 0 1px 3px rgba(0,0,0,.08), 0 1px 2px rgba(0,0,0,.04);
     }
 
-    * {
-      box-sizing: border-box;
-    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
 
     body {
-      margin: 0;
-      min-width: 320px;
-      font-family: Arial, Helvetica, sans-serif;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
       background: var(--bg);
-      color: var(--ink);
+      color: var(--text);
+      font-size: 15px;
+      line-height: 1.5;
     }
 
-    button,
-    input,
-    select,
-    textarea {
-      font: inherit;
-    }
-
-    button {
-      min-height: 40px;
-      border: 0;
-      border-radius: 8px;
-      padding: 10px 14px;
-      background: var(--accent);
+    /* ── Header ── */
+    header {
+      background: var(--primary);
       color: #fff;
-      font-weight: 700;
-      cursor: pointer;
+      padding: 0 20px;
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      box-shadow: 0 2px 8px rgba(0,0,0,.15);
     }
-
-    button:hover {
-      background: var(--accent-dark);
-    }
-
-    button.secondary {
-      background: var(--navy);
-    }
-
-    button.warning {
-      background: var(--warn);
-    }
-
-    button.danger {
-      background: var(--danger);
-    }
-
-    button.ghost {
-      background: #e8eef2;
-      color: var(--ink);
-    }
-
-    input,
-    select,
-    textarea {
-      width: 100%;
-      min-height: 40px;
-      border: 1px solid var(--line);
-      border-radius: 8px;
-      padding: 9px 10px;
-      background: #fff;
-      color: var(--ink);
-    }
-
-    label {
-      display: block;
-      margin: 12px 0 6px;
-      color: var(--muted);
-      font-size: 13px;
-      font-weight: 700;
-    }
-
-    pre {
-      min-height: 240px;
-      max-height: 520px;
-      margin: 0;
-      padding: 14px;
-      overflow: auto;
-      border-radius: 8px;
-      background: #101820;
-      color: #e5edf3;
-      font-size: 12px;
-      line-height: 1.5;
-      white-space: pre-wrap;
-      word-break: break-word;
-    }
-
-    .shell {
-      width: min(1280px, 100%);
+    .header-inner {
+      max-width: 1120px;
       margin: 0 auto;
-      padding: 18px;
-    }
-
-    .topbar {
-      display: grid;
-      grid-template-columns: minmax(0, 1fr) auto;
-      gap: 14px;
-      align-items: center;
-      padding: 16px 0 18px;
-      border-bottom: 1px solid var(--line);
-    }
-
-    .title h1 {
-      margin: 0;
-      font-size: clamp(22px, 4vw, 34px);
-      line-height: 1.1;
-      letter-spacing: 0;
-    }
-
-    .title p {
-      margin: 7px 0 0;
-      color: var(--muted);
-      line-height: 1.5;
-    }
-
-    .status-row {
       display: flex;
+      align-items: center;
+      gap: 16px;
+      padding: 14px 0;
       flex-wrap: wrap;
-      gap: 8px;
-      justify-content: flex-end;
     }
+    .brand { flex: 1; }
+    .brand h1 { font-size: 18px; font-weight: 700; letter-spacing: -.01em; }
+    .brand p { font-size: 12px; opacity: .75; margin-top: 1px; }
+    .header-chips { display: flex; gap: 8px; flex-wrap: wrap; }
 
+    /* ── Chips ── */
     .chip {
       display: inline-flex;
       align-items: center;
-      min-height: 30px;
-      border: 1px solid var(--line);
-      border-radius: 8px;
-      padding: 6px 9px;
-      background: #fff;
-      color: var(--muted);
+      gap: 5px;
+      padding: 4px 10px;
+      border-radius: 20px;
       font-size: 12px;
-      font-weight: 700;
+      font-weight: 600;
+      white-space: nowrap;
     }
+    .chip-white { background: rgba(255,255,255,.18); color: #fff; }
+    .chip-green { background: var(--green-bg); color: var(--green); }
+    .chip-yellow { background: var(--yellow-bg); color: var(--yellow); }
+    .chip-red { background: var(--red-bg); color: var(--red); }
+    .chip-gray { background: #e2e8f0; color: var(--muted); }
+    .dot { width: 7px; height: 7px; border-radius: 50%; display: inline-block; flex-shrink: 0; }
+    .dot-green { background: var(--green); }
+    .dot-yellow { background: var(--yellow); }
+    .dot-gray { background: var(--muted); }
+    .dot-red { background: var(--red); }
 
-    .chip.good {
-      border-color: #b7dfca;
-      background: var(--panel-soft);
-      color: #14532d;
-    }
+    /* ── Page shell ── */
+    .page { max-width: 1120px; margin: 0 auto; padding: 20px 20px 60px; }
 
-    .chip.bad {
-      border-color: #f3b6b0;
-      background: #fff1f0;
-      color: var(--danger);
-    }
-
-    .layout {
-      display: grid;
-      grid-template-columns: minmax(300px, 420px) minmax(0, 1fr);
-      gap: 18px;
-      padding-top: 18px;
-    }
-
-    .stack {
-      display: grid;
-      gap: 14px;
-      align-content: start;
-    }
-
-    .panel {
-      border: 1px solid var(--line);
-      border-radius: 8px;
-      background: var(--panel);
-      box-shadow: var(--shadow);
-      padding: 16px;
-    }
-
-    .panel h2,
-    .panel h3 {
-      margin: 0 0 12px;
-      font-size: 18px;
-      letter-spacing: 0;
-    }
-
-    .panel h3 {
-      font-size: 15px;
-      color: var(--muted);
-    }
-
-    .actions {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 8px;
-      margin-top: 12px;
-    }
-
-    .field-grid {
-      display: grid;
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-      gap: 0 10px;
-    }
-
-    .checks {
-      display: grid;
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-      gap: 8px;
-      margin-top: 8px;
-    }
-
-    .check {
+    /* ── Admin banner ── */
+    .admin-banner {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 14px 18px;
+      margin-bottom: 20px;
       display: flex;
       align-items: center;
-      gap: 8px;
-      min-height: 34px;
-      border: 1px solid var(--line);
-      border-radius: 8px;
-      padding: 6px 8px;
-      color: var(--ink);
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+    .admin-banner.loaded {
+      background: var(--green-bg);
+      border-color: var(--green-border);
+    }
+    .admin-banner .banner-label {
       font-size: 13px;
+      font-weight: 700;
+      color: var(--muted);
+      white-space: nowrap;
     }
-
-    .check input {
-      width: auto;
-      min-height: auto;
-    }
-
-    .metrics {
-      display: grid;
-      grid-template-columns: repeat(4, minmax(0, 1fr));
-      gap: 10px;
-    }
-
-    .metric {
-      border: 1px solid var(--line);
+    .admin-banner.loaded .banner-label { color: var(--green); }
+    .admin-banner input {
+      flex: 1;
+      min-width: 200px;
+      border: 1px solid var(--border);
       border-radius: 8px;
-      padding: 12px;
+      padding: 8px 12px;
+      font: inherit;
+      font-size: 14px;
       background: #fff;
     }
+    .banner-status { font-size: 13px; color: var(--green); font-weight: 600; }
 
-    .metric span {
-      display: block;
+    /* ── Buttons ── */
+    button { cursor: pointer; font: inherit; border: 0; border-radius: 8px; padding: 9px 16px; font-weight: 600; font-size: 14px; transition: background .15s; }
+    .btn-primary { background: var(--primary); color: #fff; }
+    .btn-primary:hover { background: var(--primary-hover); }
+    .btn-secondary { background: var(--navy); color: #fff; }
+    .btn-secondary:hover { background: #334155; }
+    .btn-ghost { background: #e8eef2; color: var(--text); }
+    .btn-ghost:hover { background: #cbd5e1; }
+    .btn-danger { background: var(--red); color: #fff; }
+    .btn-danger:hover { background: #b91c1c; }
+    .btn-warning { background: #d97706; color: #fff; }
+    .btn-sm { padding: 6px 14px; font-size: 13px; }
+
+    /* ── Stat cards ── */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 14px;
+      margin-bottom: 28px;
+    }
+    .stat-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 18px 20px;
+      box-shadow: var(--shadow);
+    }
+    .stat-label {
+      font-size: 11px;
+      font-weight: 700;
       color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: .06em;
+    }
+    .stat-value {
+      font-size: 32px;
+      font-weight: 800;
+      line-height: 1.1;
+      margin-top: 6px;
+      color: var(--text);
+    }
+    .stat-sub { font-size: 12px; color: var(--muted); margin-top: 3px; }
+
+    /* ── Section header ── */
+    .section-hdr {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      margin-bottom: 14px;
+    }
+    .section-hdr h2 { font-size: 17px; font-weight: 700; }
+    .section-hdr p { font-size: 13px; color: var(--muted); }
+
+    /* ── App card ── */
+    .app-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      margin-bottom: 16px;
+      overflow: hidden;
+    }
+    .app-card-top {
+      padding: 20px 22px;
+      display: flex;
+      align-items: flex-start;
+      gap: 16px;
+    }
+    .app-icon { font-size: 32px; line-height: 1; flex-shrink: 0; margin-top: 2px; }
+    .app-info { flex: 1; min-width: 0; }
+    .app-name { font-size: 16px; font-weight: 700; }
+    .app-key { font-size: 11px; color: var(--muted); font-family: 'SFMono-Regular', Consolas, monospace; margin-top: 2px; }
+    .app-status { flex-shrink: 0; }
+
+    .app-numbers {
+      display: flex;
+      gap: 28px;
+      margin-top: 14px;
+      flex-wrap: wrap;
+    }
+    .app-num .n { font-size: 24px; font-weight: 800; line-height: 1; }
+    .app-num .l { font-size: 11px; color: var(--muted); font-weight: 700; text-transform: uppercase; letter-spacing: .05em; margin-top: 2px; }
+    .app-last {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
+      align-items: flex-end;
+    }
+    .app-last .l { font-size: 11px; color: var(--muted); font-weight: 700; text-transform: uppercase; letter-spacing: .05em; }
+    .app-last .n { font-size: 16px; font-weight: 700; }
+
+    .app-topics { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 12px; }
+    .topic-pill {
+      background: var(--primary-light);
+      color: #065f46;
+      padding: 3px 10px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 600;
+      text-transform: capitalize;
+    }
+    .no-topics { font-size: 13px; color: var(--muted); }
+
+    /* ── Users section inside app card ── */
+    .app-users-hdr {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 22px;
+      background: #f8fafc;
+      border-top: 1px solid var(--border);
+    }
+    .app-users-hdr span { font-size: 13px; font-weight: 700; color: var(--muted); }
+    .app-users-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(270px, 1fr));
+      gap: 10px;
+      padding: 14px 16px;
+      border-top: 1px solid var(--border);
+    }
+    .app-users-empty {
+      padding: 20px 22px;
+      color: var(--muted);
+      font-size: 14px;
+      border-top: 1px solid var(--border);
+      text-align: center;
+    }
+    .show-more-btn {
+      display: block;
+      width: 100%;
+      text-align: center;
+      padding: 10px;
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--primary);
+      background: transparent;
+      border: 0;
+      border-top: 1px solid var(--border);
+      border-radius: 0;
+      cursor: pointer;
+    }
+    .show-more-btn:hover { background: #f8fafc; }
+
+    /* ── User mini card ── */
+    .user-mini {
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 12px 14px;
+      background: #fafafa;
+    }
+    .user-mini-id {
+      font-family: 'SFMono-Regular', Consolas, monospace;
+      font-size: 11px;
+      color: var(--muted);
+      margin-bottom: 7px;
+    }
+    .user-mini-badges { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
+    .persona-badge {
       font-size: 12px;
       font-weight: 700;
+      padding: 3px 9px;
+      border-radius: 20px;
     }
+    .p-ministry   { background: #ede9fe; color: #6d28d9; }
+    .p-healing    { background: #dbeafe; color: #1d4ed8; }
+    .p-devotional { background: #d1fae5; color: #065f46; }
+    .p-seeker     { background: #ffedd5; color: #c2410c; }
+    .p-caregiver  { background: #fce7f3; color: #9d174d; }
+    .p-general    { background: #f1f5f9; color: #475569; }
+    .p-visitor    { background: #e0f2fe; color: #0369a1; }
 
-    .metric strong {
-      display: block;
-      margin-top: 7px;
-      font-size: 20px;
-      line-height: 1.2;
-      word-break: break-word;
+    .eng-badge {
+      font-size: 11px;
+      font-weight: 600;
+      padding: 3px 8px;
+      border-radius: 20px;
     }
+    .e-high   { background: var(--green-bg); color: var(--green); }
+    .e-medium { background: var(--yellow-bg); color: var(--yellow); }
+    .e-low    { background: #f1f5f9; color: var(--muted); }
 
-    .summary {
-      margin-top: 14px;
-      display: grid;
+    .consent-badge { font-size: 11px; font-weight: 700; }
+    .c-yes { color: var(--green); }
+    .c-no  { color: var(--red); }
+
+    .user-mini-topics { font-size: 12px; color: var(--muted); margin-top: 6px; line-height: 1.4; }
+
+    /* ── Locked state (no admin key) ── */
+    .locked-section {
+      padding: 24px;
+      text-align: center;
+      border-top: 1px solid var(--border);
+      background: #f8fafc;
+    }
+    .lock-icon { font-size: 22px; display: block; margin-bottom: 8px; opacity: .5; }
+    .locked-section p { color: var(--muted); font-size: 14px; }
+
+    /* ── Integration section ── */
+    .integ-box {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      margin-bottom: 16px;
+      overflow: hidden;
+    }
+    .integ-toggle {
+      width: 100%;
+      text-align: left;
+      background: transparent;
+      border: 0;
+      border-radius: 0;
+      padding: 18px 22px;
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--text);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+    }
+    .integ-toggle:hover { background: #f8fafc; }
+    .integ-toggle .badge { font-size: 12px; font-weight: 600; background: var(--primary-light); color: #065f46; padding: 3px 10px; border-radius: 20px; }
+    .integ-body { display: none; border-top: 1px solid var(--border); padding: 22px; }
+    .integ-body.open { display: block; }
+    .integ-url-row {
+      display: flex;
+      align-items: center;
       gap: 10px;
-    }
-
-    .notice {
-      border-left: 4px solid var(--accent);
-      padding: 10px 12px;
-      background: var(--panel-soft);
-      color: #1f3b2b;
-      line-height: 1.55;
-    }
-
-    .recommendations {
-      display: grid;
-      gap: 10px;
-      margin-top: 14px;
-    }
-
-    .recommendation {
-      border: 1px solid var(--line);
+      background: #f8fafc;
+      border: 1px solid var(--border);
       border-radius: 8px;
-      padding: 12px;
+      padding: 10px 14px;
+      margin-bottom: 18px;
+      flex-wrap: wrap;
+    }
+    .integ-url-label { font-size: 12px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: .05em; white-space: nowrap; }
+    .integ-url-value { font-family: 'SFMono-Regular', Consolas, monospace; font-size: 13px; flex: 1; color: var(--primary); font-weight: 600; word-break: break-all; }
+    .integ-tabs { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 16px; }
+    .integ-tab {
+      padding: 6px 14px;
+      border-radius: 20px;
+      font-size: 13px;
+      font-weight: 600;
+      border: 1px solid var(--border);
+      background: #fff;
+      color: var(--muted);
+      cursor: pointer;
+    }
+    .integ-tab:hover { background: #f1f5f9; }
+    .integ-tab.active { background: var(--primary); color: #fff; border-color: var(--primary); }
+    .integ-snippet { position: relative; }
+    .integ-snippet pre {
+      max-height: 420px;
+      margin-top: 0;
+      border-radius: 8px;
+    }
+    .copy-btn {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      background: rgba(255,255,255,.12);
+      color: #e2e8f0;
+      border: 1px solid rgba(255,255,255,.2);
+      border-radius: 6px;
+      padding: 4px 12px;
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: background .15s;
+    }
+    .copy-btn:hover { background: rgba(255,255,255,.22); }
+    .integ-note { font-size: 13px; color: var(--muted); margin-top: 12px; line-height: 1.5; }
+    .integ-note code { background: #f1f5f9; padding: 1px 5px; border-radius: 4px; font-family: monospace; font-size: 12px; color: var(--primary); }
+
+    /* ── Developer tools ── */
+    .dev-tools {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      margin-top: 32px;
+      box-shadow: var(--shadow);
+    }
+    .dev-toggle {
+      width: 100%;
+      text-align: left;
+      background: transparent;
+      border: 0;
+      border-radius: 0;
+      padding: 16px 22px;
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--text);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .dev-toggle:hover { background: #f8fafc; border-radius: var(--radius); }
+    .dev-body { display: none; border-top: 1px solid var(--border); padding: 22px; }
+    .dev-body.open { display: block; }
+    .dev-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+    .dev-col h3 { font-size: 13px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: .05em; margin-bottom: 14px; }
+    .field { margin-bottom: 12px; }
+    .field label { display: block; font-size: 12px; font-weight: 700; color: var(--muted); margin-bottom: 5px; text-transform: uppercase; letter-spacing: .04em; }
+    .field input, .field select {
+      width: 100%;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 8px 12px;
+      font: inherit;
+      font-size: 14px;
       background: #fff;
     }
-
-    .recommendation strong {
-      display: block;
-      margin-bottom: 5px;
+    .field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .actions-row { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 6px; }
+    pre {
+      background: #0f172a;
+      color: #e2e8f0;
+      padding: 14px;
+      border-radius: 8px;
+      font-size: 12px;
+      overflow: auto;
+      max-height: 320px;
+      white-space: pre-wrap;
+      word-break: break-word;
+      margin-top: 14px;
+      font-family: 'SFMono-Regular', Consolas, monospace;
     }
 
-    .recommendation small {
-      color: var(--muted);
-      line-height: 1.4;
+    /* ── Misc ── */
+    .loading { color: var(--muted); font-size: 14px; padding: 24px; text-align: center; }
+    .divider { height: 1px; background: var(--border); margin: 8px 0; }
+
+    /* ── Responsive ── */
+    @media (max-width: 760px) {
+      .stats-grid { grid-template-columns: repeat(2, 1fr); }
+      .dev-grid { grid-template-columns: 1fr; }
+      .app-users-grid { grid-template-columns: 1fr; }
+      .app-last { align-items: flex-start; margin-top: 8px; }
+      .steps-grid { grid-template-columns: 1fr !important; }
     }
-
-    .split {
-      display: grid;
-      grid-template-columns: minmax(0, 1fr) minmax(300px, 420px);
-      gap: 14px;
-    }
-
-    .muted {
-      color: var(--muted);
-      line-height: 1.5;
-    }
-
-    .source-list {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 6px;
-      margin-top: 8px;
-    }
-
-    @media (max-width: 980px) {
-      .layout,
-      .split {
-        grid-template-columns: 1fr;
-      }
-
-      .topbar {
-        grid-template-columns: 1fr;
-      }
-
-      .status-row {
-        justify-content: flex-start;
-      }
-    }
-
-    @media (max-width: 620px) {
-      .shell {
-        padding: 12px;
-      }
-
-      .field-grid,
-      .checks,
-      .metrics {
-        grid-template-columns: 1fr;
-      }
+    @media (max-width: 480px) {
+      .stats-grid { grid-template-columns: 1fr; }
+      .header-inner { gap: 10px; }
     }
   </style>
 </head>
 <body>
-  <main class="shell">
-    <section class="topbar">
-      <div class="title">
-        <h1>Faith Content Personalization Engine</h1>
-        <p>Consent-first interest profiles for app and approved ministry-platform signals.</p>
+
+  <!-- ── Header ── -->
+  <header>
+    <div class="header-inner">
+      <div class="brand">
+        <h1>Faith Content Engine</h1>
+        <p>Consent-first interest profiling for faith platforms</p>
       </div>
-      <div class="status-row">
-        <span class="chip" id="apiStatus">API checking</span>
-        <span class="chip" id="geminiStatus">AI unknown</span>
-        <span class="chip" id="retentionStatus">Retention unknown</span>
-        <span class="chip" id="networkStatus">Network unknown</span>
+      <div class="header-chips">
+        <span class="chip chip-white" id="apiChip"><span class="dot dot-gray"></span> API checking</span>
+        <span class="chip chip-white" id="aiChip">AI unknown</span>
+        <span class="chip chip-white" id="retentionChip">Retention unknown</span>
       </div>
-    </section>
+    </div>
+  </header>
 
-    <section class="layout">
-      <div class="stack">
-        <section class="panel">
-          <h2>User And Consent</h2>
-          <label for="anonymousUserId">Anonymous user ID</label>
-          <input id="anonymousUserId" placeholder="anon_..." />
-          <div class="actions">
-            <button onclick="createUser()">Create</button>
-            <button class="secondary" onclick="loadProfile()">Profile</button>
-            <button class="ghost" onclick="loadSettings()">Settings</button>
-          </div>
+  <div class="page">
 
-          <h3>Consent Scopes</h3>
-          <div class="checks" id="scopeChecks"></div>
-          <div class="actions">
-            <button onclick="saveConsent(true)">Accept</button>
-            <button class="warning" onclick="saveConsent(false)">Turn Off</button>
-            <button class="danger" onclick="deleteUser()">Delete User</button>
-          </div>
-        </section>
+    <!-- ── Admin key banner ── -->
+    <div class="admin-banner" id="adminBanner" style="margin-top:20px">
+      <span class="banner-label">Admin Key</span>
+      <input type="password" id="adminKeyInput" placeholder="Enter ADMIN_API_KEY to unlock live stats and profiles" />
+      <button class="btn-primary btn-sm" onclick="loadStats()">Load Stats</button>
+      <span class="banner-status" id="bannerStatus" style="display:none">&#10003; Stats loaded</span>
+    </div>
 
-        <section class="panel">
-          <h2>Phone Test</h2>
-          <p class="muted">Open one of these LAN URLs from a phone on the same Wi-Fi network, then create a user and accept consent scopes before tracking test signals.</p>
-          <div class="source-list" id="lanUrls">
-            <span class="chip">Loading network URLs</span>
-          </div>
-          <div class="actions">
-            <button class="ghost" onclick="loadNetworkInfo()">Refresh URLs</button>
-          </div>
-        </section>
-
-        <section class="panel">
-          <h2>Track Signal</h2>
-          <label for="eventType">Event type</label>
-          <select id="eventType"></select>
-
-          <label for="source">Source</label>
-          <select id="source"></select>
-
-          <div class="field-grid">
-            <div>
-              <label for="topic">Topic</label>
-              <input id="topic" value="healing testimonies" />
-            </div>
-            <div>
-              <label for="contentType">Content type</label>
-              <select id="contentType">
-                <option value="video">Video</option>
-                <option value="short_video">Short Video</option>
-                <option value="article">Article</option>
-                <option value="guide">Guide</option>
-                <option value="program">Program</option>
-                <option value="campaign_link">Campaign Link</option>
-                <option value="search">Search</option>
-              </select>
-            </div>
-          </div>
-
-          <div class="field-grid">
-            <div>
-              <label for="contentId">Content ID</label>
-              <input id="contentId" value="content_002" />
-            </div>
-            <div>
-              <label for="timeSpentSeconds">Seconds</label>
-              <input id="timeSpentSeconds" type="number" min="0" value="180" />
-            </div>
-          </div>
-
-          <div class="field-grid">
-            <div>
-              <label for="campaignId">Campaign ID</label>
-              <input id="campaignId" value="healing_streams_2026" />
-            </div>
-            <div>
-              <label for="page">Page</label>
-              <input id="page" value="registration" />
-            </div>
-          </div>
-
-          <div class="actions">
-            <button onclick="trackEvent()">Track</button>
-            <button class="secondary" onclick="getRecommendations()">Recommendations</button>
-            <button class="warning" onclick="resetProfile()">Reset Profile</button>
-          </div>
-        </section>
-
-        <section class="panel">
-          <h2>Preferences</h2>
-          <div class="field-grid">
-            <div>
-              <label for="language">Language</label>
-              <input id="language" value="en" />
-            </div>
-            <div>
-              <label for="country">Country</label>
-              <input id="country" value="unspecified" />
-            </div>
-          </div>
-          <label for="ageGroup">Audience</label>
-          <select id="ageGroup">
-            <option value="general">General</option>
-            <option value="adult">Adult</option>
-            <option value="family">Family</option>
-            <option value="youth">Youth</option>
-          </select>
-          <label for="preferredFormats">Preferred formats</label>
-          <input id="preferredFormats" value="video,article" />
-          <label for="preferredTopics">Preferred topics</label>
-          <input id="preferredTopics" value="healing streams, prayer" />
-          <label for="blockedTopics">Blocked topics</label>
-          <input id="blockedTopics" placeholder="Optional" />
-          <div class="actions">
-            <button onclick="savePreferences()">Save Preferences</button>
-          </div>
-        </section>
-
-        <section class="panel">
-          <h2>Admin</h2>
-          <label for="adminKey">Admin API key</label>
-          <input id="adminKey" type="password" placeholder="ADMIN_API_KEY" />
-          <div class="actions">
-            <button class="secondary" onclick="loadAdminEvents()">Events</button>
-            <button class="secondary" onclick="loadConsentHistory()">Consent</button>
-            <button class="warning" onclick="runRetention()">Run Retention</button>
-          </div>
-        </section>
+    <!-- ── Overview stats ── -->
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-label">Connected Apps</div>
+        <div class="stat-value" id="statApps">-</div>
+        <div class="stat-sub">Approved sources</div>
       </div>
-
-      <div class="stack">
-        <section class="panel">
-          <h2>Profile</h2>
-          <div class="metrics">
-            <div class="metric">
-              <span>Persona</span>
-              <strong id="persona">-</strong>
-            </div>
-            <div class="metric">
-              <span>Engagement</span>
-              <strong id="engagement">-</strong>
-            </div>
-            <div class="metric">
-              <span>Events</span>
-              <strong id="eventCount">0</strong>
-            </div>
-            <div class="metric">
-              <span>Format</span>
-              <strong id="format">-</strong>
-            </div>
-          </div>
-          <div class="summary">
-            <div class="notice" id="aiSummary">No profile loaded yet.</div>
-            <div class="muted" id="rationale"></div>
-            <div>
-              <strong>Approved sources used</strong>
-              <div class="source-list" id="sourceCounts"></div>
-            </div>
-          </div>
-          <div class="recommendations" id="recommendations"></div>
-        </section>
-
-        <section class="split">
-          <div class="panel">
-            <h2>Privacy Notice</h2>
-            <div class="notice" id="privacyNotice">Loading notice.</div>
-            <div class="source-list" id="approvedSources"></div>
-          </div>
-          <div class="panel">
-            <h2>API Response</h2>
-            <pre id="output">Ready.</pre>
-          </div>
-        </section>
+      <div class="stat-card">
+        <div class="stat-label">Total Users</div>
+        <div class="stat-value" id="statUsers">-</div>
+        <div class="stat-sub">Anonymous profiles</div>
       </div>
-    </section>
-  </main>
+      <div class="stat-card">
+        <div class="stat-label">Total Events</div>
+        <div class="stat-value" id="statEvents">-</div>
+        <div class="stat-sub">Interest signals tracked</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Data Retention</div>
+        <div class="stat-value" id="statRetention">-</div>
+        <div class="stat-sub">Days data is kept</div>
+      </div>
+    </div>
+
+    <!-- ── Connected apps section ── -->
+    <div class="section-hdr">
+      <h2>Connected Apps &amp; Platforms</h2>
+      <p>Platforms sending interest signals to this engine</p>
+    </div>
+    <div id="appsContainer">
+      <div class="loading">Loading connected apps&hellip;</div>
+    </div>
+
+    <!-- ── Integration section ── -->
+    <div class="section-hdr" style="margin-top:36px">
+      <h2>Connect Your App or Website</h2>
+      <p>3 steps &mdash; pick your platform and copy the code</p>
+    </div>
+
+    <!-- How it works row -->
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:20px">
+      <div style="background:#fff;border:1px solid var(--border);border-radius:var(--radius);padding:16px 18px;box-shadow:var(--shadow)">
+        <div style="font-size:22px;margin-bottom:6px">1️⃣</div>
+        <div style="font-weight:700;font-size:14px">User is created</div>
+        <div style="font-size:13px;color:var(--muted);margin-top:4px">An anonymous ID is generated automatically — no login or PII needed.</div>
+      </div>
+      <div style="background:#fff;border:1px solid var(--border);border-radius:var(--radius);padding:16px 18px;box-shadow:var(--shadow)">
+        <div style="font-size:22px;margin-bottom:6px">2️⃣</div>
+        <div style="font-weight:700;font-size:14px">Tracking starts</div>
+        <div style="font-size:13px;color:var(--muted);margin-top:4px">Page views, searches, and time on page are captured automatically. No setup needed.</div>
+      </div>
+      <div style="background:#fff;border:1px solid var(--border);border-radius:var(--radius);padding:16px 18px;box-shadow:var(--shadow)">
+        <div style="font-size:22px;margin-bottom:6px">3️⃣</div>
+        <div style="font-weight:700;font-size:14px">Signals are tracked</div>
+        <div style="font-size:13px;color:var(--muted);margin-top:4px">Page views, searches, and time spent are sent here and turned into profiles.</div>
+      </div>
+    </div>
+
+    <!-- Website embed card (open by default) -->
+    <div class="integ-box">
+      <button class="integ-toggle" onclick="toggleInteg('website')">
+        <span>🌐 &nbsp;Website &mdash; Drop-in Embed Script <em style="font-size:12px;font-weight:400;opacity:.6">(recommended — easiest)</em></span>
+        <span class="badge">1 line of code</span>
+      </button>
+      <div class="integ-body open" id="integ-website">
+        <!-- Auto-tracking feature list -->
+        <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:8px;margin-bottom:18px">
+          <div style="background:var(--green-bg);border:1px solid var(--green-border);border-radius:8px;padding:10px 12px;font-size:13px">
+            <strong style="color:var(--green)">✓ Page views</strong><br><span style="color:var(--muted)">Tracks every page the user visits</span>
+          </div>
+          <div style="background:var(--green-bg);border:1px solid var(--green-border);border-radius:8px;padding:10px 12px;font-size:13px">
+            <strong style="color:var(--green)">✓ Search queries</strong><br><span style="color:var(--muted)">Reads <code style="font-size:11px">?q=</code>, <code style="font-size:11px">?search=</code>, form submissions</span>
+          </div>
+          <div style="background:var(--green-bg);border:1px solid var(--green-border);border-radius:8px;padding:10px 12px;font-size:13px">
+            <strong style="color:var(--green)">✓ Time on page</strong><br><span style="color:var(--muted)">Sent on tab close or navigation</span>
+          </div>
+          <div style="background:var(--green-bg);border:1px solid var(--green-border);border-radius:8px;padding:10px 12px;font-size:13px">
+            <strong style="color:var(--green)">✓ Topic from URL</strong><br><span style="color:var(--muted)">Infers faith topic from page path</span>
+          </div>
+          <div style="background:var(--green-bg);border:1px solid var(--green-border);border-radius:8px;padding:10px 12px;font-size:13px">
+            <strong style="color:var(--green)">✓ SPA navigation</strong><br><span style="color:var(--muted)">Works with React, Next.js, Vue</span>
+          </div>
+          <div style="background:var(--green-bg);border:1px solid var(--green-border);border-radius:8px;padding:10px 12px;font-size:13px">
+            <strong style="color:var(--green)">✓ No consent gate</strong><br><span style="color:var(--muted)">Tracks immediately — add your own UI later</span>
+          </div>
+        </div>
+
+        <div class="integ-url-row">
+          <span class="integ-url-label">Your engine URL</span>
+          <span class="integ-url-value" id="serverUrlDisplay">detecting…</span>
+          <button class="btn-ghost btn-sm" onclick="copyServerUrl()">Copy</button>
+        </div>
+
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px;flex-wrap:wrap">
+          <label style="font-size:13px;font-weight:700;color:var(--muted);white-space:nowrap">Which app is this website?</label>
+          <select id="embedSource" style="border:1px solid var(--border);border-radius:8px;padding:8px 12px;font:inherit;font-size:14px;background:#fff;flex:1;min-width:180px" onchange="renderSnippet('website')"></select>
+        </div>
+
+        <div class="integ-snippet">
+          <pre id="snippet-website"></pre>
+          <button class="copy-btn" onclick="copySnippet('website')">Copy</button>
+        </div>
+        <p class="integ-note">
+          Paste inside <code>&lt;head&gt;</code> or before <code>&lt;/body&gt;</code> — tracking starts immediately.
+          To add extra events manually call <code>FaithEngine.track(eventType, topic, options)</code> anywhere on the page.
+        </p>
+      </div>
+    </div>
+
+    <!-- Vanilla JS card -->
+    <div class="integ-box">
+      <button class="integ-toggle" onclick="toggleInteg('js')">
+        <span>⚡ JavaScript / Vanilla JS</span>
+        <span class="badge">fetch API</span>
+      </button>
+      <div class="integ-body" id="integ-js">
+        <div class="integ-snippet">
+          <pre id="snippet-js"></pre>
+          <button class="copy-btn" onclick="copySnippet('js')">Copy</button>
+        </div>
+        <p class="integ-note">Works in any browser or Node.js environment. Store <code>userId</code> in localStorage or your session between page loads.</p>
+      </div>
+    </div>
+
+    <!-- React card -->
+    <div class="integ-box">
+      <button class="integ-toggle" onclick="toggleInteg('react')">
+        <span>⚛️ React</span>
+        <span class="badge">custom hook</span>
+      </button>
+      <div class="integ-body" id="integ-react">
+        <div class="integ-snippet">
+          <pre id="snippet-react"></pre>
+          <button class="copy-btn" onclick="copySnippet('react')">Copy</button>
+        </div>
+        <p class="integ-note">Drop <code>useFaithEngine</code> into any component. The hook manages user creation and consent automatically.</p>
+      </div>
+    </div>
+
+    <!-- React Native card -->
+    <div class="integ-box">
+      <button class="integ-toggle" onclick="toggleInteg('rn')">
+        <span>📱 React Native / Expo</span>
+        <span class="badge">AsyncStorage</span>
+      </button>
+      <div class="integ-body" id="integ-rn">
+        <div class="integ-snippet">
+          <pre id="snippet-rn"></pre>
+          <button class="copy-btn" onclick="copySnippet('rn')">Copy</button>
+        </div>
+        <p class="integ-note">Requires <code>@react-native-async-storage/async-storage</code>. Install: <code>npx expo install @react-native-async-storage/async-storage</code>.</p>
+      </div>
+    </div>
+
+    <!-- Python card -->
+    <div class="integ-box">
+      <button class="integ-toggle" onclick="toggleInteg('python')">
+        <span>🐍 Python</span>
+        <span class="badge">requests library</span>
+      </button>
+      <div class="integ-body" id="integ-python">
+        <div class="integ-snippet">
+          <pre id="snippet-python"></pre>
+          <button class="copy-btn" onclick="copySnippet('python')">Copy</button>
+        </div>
+        <p class="integ-note">Install: <code>pip install requests</code>. Store <code>user_id</code> in your session or database — one ID per visitor.</p>
+      </div>
+    </div>
+
+    <!-- ── Developer tools ── -->
+    <div class="dev-tools">
+      <button class="dev-toggle" onclick="toggleDev()">
+        Developer Tools
+        <span id="devArrow">&#9660;</span>
+      </button>
+      <div class="dev-body" id="devBody">
+        <div class="dev-grid">
+          <div class="dev-col">
+            <h3>User &amp; Event Tracking</h3>
+            <div class="field">
+              <label>Anonymous User ID</label>
+              <input id="devUserId" placeholder="anon_..." />
+            </div>
+            <div class="field-row">
+              <div class="field">
+                <label>Event Type</label>
+                <select id="devEventType"></select>
+              </div>
+              <div class="field">
+                <label>Source</label>
+                <select id="devSource"></select>
+              </div>
+            </div>
+            <div class="field-row">
+              <div class="field">
+                <label>Topic</label>
+                <input id="devTopic" value="healing testimonies" />
+              </div>
+              <div class="field">
+                <label>Seconds Spent</label>
+                <input id="devSeconds" type="number" value="180" min="0" />
+              </div>
+            </div>
+            <div class="field">
+              <label>Consent Scopes (all selected by default)</label>
+            </div>
+            <div class="actions-row">
+              <button class="btn-primary btn-sm" onclick="devCreateUser()">Create User</button>
+              <button class="btn-ghost btn-sm" onclick="devAcceptConsent()">Accept Consent</button>
+              <button class="btn-ghost btn-sm" onclick="devTrackEvent()">Track Event</button>
+              <button class="btn-ghost btn-sm" onclick="devLoadProfile()">View Profile</button>
+              <button class="btn-danger btn-sm" onclick="devDeleteUser()">Delete User</button>
+            </div>
+          </div>
+          <div class="dev-col">
+            <h3>Admin Tools</h3>
+            <div class="actions-row">
+              <button class="btn-secondary btn-sm" onclick="devAdminEvents()">View Events Log</button>
+              <button class="btn-secondary btn-sm" onclick="devConsentHistory()">Consent Log</button>
+              <button class="btn-warning btn-sm" onclick="devRunRetention()">Run Retention</button>
+            </div>
+            <pre id="devOutput">Ready. Create a user and track events to get started.</pre>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /page -->
 
   <script>
-    const apiBase = '';
-    let appConfig = {
-      allowedEventTypes: [],
-      consentScopes: [],
-      defaultConsentScopes: [],
-      approvedEventSources: []
+    // ─── State ───────────────────────────────────────────────────────────────
+    const S = {
+      config: null,
+      sources: null,
+      users: null,
+      expandedApps: new Set(),
+      devOpen: false
     };
 
-    const output = document.getElementById('output');
-    const userInput = document.getElementById('anonymousUserId');
-    const adminKeyInput = document.getElementById('adminKey');
-
-    userInput.value = localStorage.getItem('anonymousUserId') || '';
+    const $ = id => document.getElementById(id);
+    const adminKeyInput = $('adminKeyInput');
     adminKeyInput.value = localStorage.getItem('adminKey') || '';
+    $('devUserId').value = localStorage.getItem('devUserId') || '';
 
-    function show(data) {
-      output.textContent = JSON.stringify(data, null, 2);
-    }
-
-    function splitList(value) {
-      return String(value || '')
-        .split(',')
-        .map(item => item.trim())
-        .filter(Boolean);
-    }
-
-    async function request(path, options = {}) {
-      const response = await fetch(apiBase + path, {
-        ...options,
-        headers: {
-          'Content-Type': 'application/json',
-          ...(options.headers || {})
-        }
+    // ─── API ─────────────────────────────────────────────────────────────────
+    async function api(path, opts = {}) {
+      const res = await fetch(path, {
+        ...opts,
+        headers: { 'Content-Type': 'application/json', ...(opts.headers || {}) }
       });
-      const data = await response.json().catch(() => ({ success: false, message: 'Invalid JSON response.' }));
-      show(data);
-      if (!response.ok) throw data;
+      const data = await res.json().catch(() => ({ success: false, message: 'Invalid response.' }));
+      if (!res.ok) throw data;
       return data;
-    }
-
-    function currentUserId() {
-      const anonymousUserId = userInput.value.trim();
-      if (!anonymousUserId) {
-        alert('Create or paste an anonymous user ID first.');
-        throw new Error('Missing anonymous user ID.');
-      }
-      localStorage.setItem('anonymousUserId', anonymousUserId);
-      return anonymousUserId;
     }
 
     function adminHeaders() {
@@ -597,224 +756,580 @@
       return { 'x-admin-api-key': key };
     }
 
-    function setChip(id, text, state) {
-      const element = document.getElementById(id);
-      element.textContent = text;
-      element.className = 'chip' + (state ? ' ' + state : '');
+    // ─── Formatting ──────────────────────────────────────────────────────────
+    const fmt = str => String(str || '').replaceAll('_', ' ');
+    const esc = value => String(value ?? '').replace(/[&<>"']/g, char => ({
+      '&': '&amp;',
+      '<': '&lt;',
+      '>': '&gt;',
+      '"': '&quot;',
+      "'": '&#39;'
+    }[char]));
+    const attr = esc;
+
+    function timeAgo(iso) {
+      if (!iso) return 'Never';
+      const s = Math.floor((Date.now() - new Date(iso)) / 1000);
+      if (s < 60) return 'Just now';
+      const m = Math.floor(s / 60);
+      if (m < 60) return `${m}m ago`;
+      const h = Math.floor(m / 60);
+      if (h < 24) return `${h}h ago`;
+      return `${Math.floor(h / 24)}d ago`;
     }
 
-    function renderConfig(config) {
-      appConfig = config;
-      const eventType = document.getElementById('eventType');
-      eventType.innerHTML = config.allowedEventTypes
-        .map(type => `<option value="${type}">${type.replaceAll('_', ' ')}</option>`)
-        .join('');
-      eventType.value = 'video_watched';
+    const SOURCE_ICONS = {
+      healing_school_app: '📱',
+      healing_streams_registration_page: '📋',
+      approved_healing_school_campaign: '📣',
+      official_ministry_website: '🌐',
+      approved_email_campaign: '✉️'
+    };
+    const SOURCE_NAMES = {
+      healing_school_app: 'Healing School App',
+      healing_streams_registration_page: 'Healing Streams Registration',
+      approved_healing_school_campaign: 'Approved Campaign',
+      official_ministry_website: 'Ministry Website',
+      approved_email_campaign: 'Email Campaign'
+    };
 
-      const source = document.getElementById('source');
-      source.innerHTML = config.approvedEventSources
-        .map(item => `<option value="${item}">${item.replaceAll('_', ' ')}</option>`)
-        .join('');
+    function sourceIcon(s) { return SOURCE_ICONS[s] || '🔗'; }
+    function sourceName(s) { return SOURCE_NAMES[s] || fmt(s); }
 
-      const checks = document.getElementById('scopeChecks');
-      checks.innerHTML = config.consentScopes.map(scope => {
-        const checked = config.defaultConsentScopes.includes(scope) ? 'checked' : '';
-        return `<label class="check"><input type="checkbox" value="${scope}" ${checked} /> ${scope.replaceAll('_', ' ')}</label>`;
-      }).join('');
-
-      document.getElementById('approvedSources').innerHTML = config.approvedEventSources
-        .map(item => `<span class="chip good">${item}</span>`)
-        .join('');
+    function personaClass(p) {
+      const l = (p || '').toLowerCase();
+      if (l.includes('ministry'))   return 'p-ministry';
+      if (l.includes('healing'))    return 'p-healing';
+      if (l.includes('devotional')) return 'p-devotional';
+      if (l.includes('seeker'))     return 'p-seeker';
+      if (l.includes('caregiver'))  return 'p-caregiver';
+      if (l.includes('visitor'))    return 'p-visitor';
+      return 'p-general';
     }
 
-    function renderNetworkInfo(info) {
-      setChip('networkStatus', info.phoneTestingEnabled ? 'LAN enabled' : 'Local only', info.phoneTestingEnabled ? 'good' : '');
-      const urls = info.lanUrls && info.lanUrls.length ? info.lanUrls : [info.localUrl];
-      document.getElementById('lanUrls').innerHTML = urls
-        .map(url => `<span class="chip good">${url}</span>`)
-        .join('');
+    function engClass(e) {
+      if (e === 'high')   return 'e-high';
+      if (e === 'medium') return 'e-medium';
+      return 'e-low';
     }
 
-    function selectedScopes() {
-      return Array.from(document.querySelectorAll('#scopeChecks input:checked')).map(input => input.value);
+    // ─── User mini-card ───────────────────────────────────────────────────────
+    function userMiniHtml(u) {
+      const persona = u.persona || 'General Believer';
+      const topicsText = (u.topTopics || []).slice(0, 3).map(fmt).map(esc).join(' &middot; ') || 'No topics yet';
+      const engLabel = u.engagementLevel && u.engagementLevel !== 'none' ? u.engagementLevel : null;
+      return `
+        <div class="user-mini">
+          <div class="user-mini-id">${esc(u.anonymousUserId)}</div>
+          <div class="user-mini-badges">
+            <span class="persona-badge ${personaClass(persona)}">${esc(persona)}</span>
+            ${engLabel ? `<span class="eng-badge ${engClass(engLabel)}">${esc(engLabel)}</span>` : ''}
+            <span class="consent-badge ${u.consent ? 'c-yes' : 'c-no'}">${u.consent ? '✓ Consented' : '✗ No consent'}</span>
+          </div>
+          <div class="user-mini-topics">${topicsText}</div>
+        </div>`;
     }
 
-    function renderProfile(profile) {
-      document.getElementById('persona').textContent = profile.persona || '-';
-      document.getElementById('engagement').textContent = profile.engagementLevel || '-';
-      document.getElementById('eventCount').textContent = String(profile.totalEvents || 0);
-      document.getElementById('format').textContent = (profile.preferredContentType || '-').replaceAll('_', ' ');
-      document.getElementById('aiSummary').textContent = profile.aiSummary || 'No summary yet.';
-      document.getElementById('rationale').textContent = profile.recommendationRationale || '';
+    // ─── App card ─────────────────────────────────────────────────────────────
+    function appCardHtml(source, stats, allUsers) {
+      const icon = sourceIcon(source);
+      const name = sourceName(source);
+      const isExpanded = S.expandedApps.has(source);
 
-      const sourceCounts = profile.sourceCounts || {};
-      document.getElementById('sourceCounts').innerHTML = Object.keys(sourceCounts).length
-        ? Object.entries(sourceCounts).map(([source, count]) => `<span class="chip">${source}: ${count}</span>`).join('')
-        : '<span class="chip">No signals</span>';
+      let statsHtml = '';
+      let usersHtml = '';
 
-      document.getElementById('recommendations').innerHTML = (profile.recommendedContent || []).map(item => `
-        <div class="recommendation">
-          <strong>${item.title}</strong>
-          <small>${item.topic.replaceAll('_', ' ')} / ${item.type.replaceAll('_', ' ')} / score ${item.recommendationScore}</small><br />
-          <small>${(item.reasons || []).join(', ')}</small>
-        </div>
-      `).join('');
+      if (stats) {
+        const active = stats.eventCount > 0;
+        const statusChip = active
+          ? `<span class="chip chip-green"><span class="dot dot-green"></span> Active</span>`
+          : `<span class="chip chip-gray"><span class="dot dot-gray"></span> No activity</span>`;
 
-      if (profile.preferences) {
-        document.getElementById('language').value = profile.preferences.language || 'en';
-        document.getElementById('country').value = profile.preferences.country || 'unspecified';
-        document.getElementById('ageGroup').value = profile.preferences.ageGroup || 'general';
-        document.getElementById('preferredFormats').value = (profile.preferences.preferredFormats || []).join(', ');
-        document.getElementById('preferredTopics').value = (profile.preferences.preferredTopics || []).join(', ');
-        document.getElementById('blockedTopics').value = (profile.preferences.blockedTopics || []).join(', ');
+        const topicsHtml = stats.topTopics.length
+          ? stats.topTopics.map(t => `<span class="topic-pill">${esc(fmt(t.topic))}</span>`).join('')
+          : `<span class="no-topics">No topics tracked yet</span>`;
+
+        statsHtml = `
+          <div class="app-numbers">
+            <div class="app-num"><div class="n">${stats.eventCount}</div><div class="l">Events</div></div>
+            <div class="app-num"><div class="n">${stats.uniqueUsers}</div><div class="l">Users</div></div>
+            <div class="app-last">
+              <div class="l">Last active</div>
+              <div class="n">${timeAgo(stats.lastEventAt)}</div>
+            </div>
+          </div>
+          <div class="app-topics">${topicsHtml}</div>`;
+
+        // Filter users by this source
+        const srcUsers = allUsers.filter(u => (u.sourceCounts && u.sourceCounts[source] > 0) || (u.topSources || []).includes(source));
+        const MAX = 3;
+        const shown = isExpanded ? srcUsers : srcUsers.slice(0, MAX);
+        const hasMore = srcUsers.length > MAX && !isExpanded;
+        const hasLess = isExpanded && srcUsers.length > MAX;
+
+        const usersBody = shown.length
+          ? `<div class="app-users-grid">${shown.map(userMiniHtml).join('')}</div>`
+          : `<div class="app-users-empty">${active ? 'No profiles matched yet &mdash; load full stats to see them.' : 'No user profiles from this app yet.'}</div>`;
+
+        const toggleBtn = hasMore
+          ? `<button class="show-more-btn" onclick="toggleExpand('${attr(source)}')">Show all ${srcUsers.length} users &#9660;</button>`
+          : hasLess
+            ? `<button class="show-more-btn" onclick="toggleExpand('${attr(source)}')">Show less &#9650;</button>`
+            : '';
+
+        usersHtml = `
+          <div class="app-users-hdr">
+            <span>Profiles from this app &mdash; ${srcUsers.length} user${srcUsers.length !== 1 ? 's' : ''}</span>
+          </div>
+          ${usersBody}
+          ${toggleBtn}`;
+      } else {
+        usersHtml = `
+          <div class="locked-section">
+            <span class="lock-icon">🔒</span>
+            <p>Enter your admin key above and click <strong>Load Stats</strong> to see live data and user profiles</p>
+          </div>`;
+      }
+
+      const statusBadge = stats
+        ? (stats.eventCount > 0
+          ? `<span class="chip chip-green"><span class="dot dot-green"></span> Active</span>`
+          : `<span class="chip chip-gray"><span class="dot dot-gray"></span> No activity</span>`)
+        : '';
+
+      return `
+        <div class="app-card" id="card-${attr(source)}">
+          <div class="app-card-top">
+            <div class="app-icon">${icon}</div>
+            <div class="app-info">
+              <div class="app-name">${esc(name)}</div>
+              <div class="app-key">${esc(source)}</div>
+              ${statsHtml}
+            </div>
+            <div class="app-status">${statusBadge}</div>
+          </div>
+          ${usersHtml}
+        </div>`;
+    }
+
+    // ─── Render all app cards ─────────────────────────────────────────────────
+    function renderApps() {
+      if (!S.config) return;
+      const sources = S.config.approvedEventSources;
+      const statsMap = S.sources
+        ? Object.fromEntries(S.sources.sources.map(s => [s.source, s]))
+        : null;
+      const allUsers = S.users ? S.users.users : [];
+
+      $('appsContainer').innerHTML = sources.length
+        ? sources.map(src => appCardHtml(src, statsMap ? (statsMap[src] || null) : null, allUsers)).join('')
+        : '<p style="color:var(--muted)">No sources configured.</p>';
+
+      if (S.sources) {
+        $('statUsers').textContent = S.sources.totalUsers;
+        $('statEvents').textContent = S.sources.totalEvents;
       }
     }
 
+    function toggleExpand(source) {
+      S.expandedApps.has(source) ? S.expandedApps.delete(source) : S.expandedApps.add(source);
+      renderApps();
+    }
+
+    // ─── Load admin stats ─────────────────────────────────────────────────────
+    async function loadStats() {
+      const key = adminKeyInput.value.trim();
+      if (!key) { alert('Enter an admin API key first.'); return; }
+      localStorage.setItem('adminKey', key);
+      try {
+        const [srcData, usrData] = await Promise.all([
+          api('/api/admin/sources', { headers: adminHeaders() }),
+          api('/api/admin/users', { headers: adminHeaders() })
+        ]);
+        S.sources = srcData;
+        S.users = usrData;
+        $('adminBanner').classList.add('loaded');
+        $('bannerStatus').style.display = '';
+        renderApps();
+      } catch (err) {
+        alert('Could not load stats. Check your admin key.\n' + (err.message || JSON.stringify(err)));
+      }
+    }
+
+    // ─── Boot ─────────────────────────────────────────────────────────────────
     async function boot() {
       try {
-        const health = await request('/api/health');
-        setChip('apiStatus', 'API online', 'good');
-        setChip('geminiStatus', health.geminiEnabled ? 'AI enabled' : 'AI fallback', health.geminiEnabled ? 'good' : '');
-        setChip('retentionStatus', `${health.dataRetentionDays} day retention`, '');
+        const health = await api('/api/health');
+        $('apiChip').innerHTML = `<span class="dot dot-green"></span> API Online`;
+        $('apiChip').className = 'chip chip-green';
+        $('aiChip').textContent = health.geminiEnabled ? 'AI enabled' : 'AI fallback';
+        $('aiChip').className = health.geminiEnabled ? 'chip chip-green' : 'chip chip-white';
+        $('retentionChip').textContent = `${health.dataRetentionDays}d retention`;
+        $('retentionChip').className = 'chip chip-white';
+        $('statRetention').textContent = health.dataRetentionDays;
+      } catch {
+        $('apiChip').innerHTML = `<span class="dot dot-red"></span> API Offline`;
+        $('apiChip').className = 'chip chip-red';
+      }
 
-        const config = await request('/api/config');
-        renderConfig(config);
+      try {
+        const cfg = await api('/api/config');
+        S.config = cfg;
+        $('statApps').textContent = cfg.approvedEventSources.length;
 
-        await loadNetworkInfo();
+        // Populate dev selects
+        $('devEventType').innerHTML = cfg.allowedEventTypes
+          .map(t => `<option value="${attr(t)}">${esc(fmt(t))}</option>`).join('');
+        $('devEventType').value = 'video_watched';
 
-        const notice = await request('/api/privacy-notice');
-        document.getElementById('privacyNotice').textContent = notice.notice;
+        $('devSource').innerHTML = cfg.approvedEventSources
+          .map(s => `<option value="${attr(s)}">${esc(sourceName(s))}</option>`).join('');
 
-        if (userInput.value.trim()) loadProfile();
+        initIntegration(cfg.approvedEventSources);
+
+        if (adminKeyInput.value.trim()) {
+          await loadStats();
+        } else {
+          renderApps();
+        }
       } catch (err) {
-        setChip('apiStatus', 'API offline', 'bad');
+        $('appsContainer').innerHTML = '<div class="loading">Could not reach API. Is the server running?</div>';
       }
     }
 
-    async function loadNetworkInfo() {
-      const data = await request('/api/network-info');
-      renderNetworkInfo(data);
+    // ─── Dev tools toggle ─────────────────────────────────────────────────────
+    function toggleDev() {
+      S.devOpen = !S.devOpen;
+      $('devBody').className = 'dev-body' + (S.devOpen ? ' open' : '');
+      $('devArrow').textContent = S.devOpen ? '▲' : '▼';
     }
 
-    async function createUser() {
-      const data = await request('/api/users/anonymous', {
-        method: 'POST',
-        body: JSON.stringify({
-          preferences: {
-            language: document.getElementById('language').value,
-            country: document.getElementById('country').value,
-            ageGroup: document.getElementById('ageGroup').value,
-            preferredFormats: splitList(document.getElementById('preferredFormats').value),
-            preferredTopics: splitList(document.getElementById('preferredTopics').value),
-            blockedTopics: splitList(document.getElementById('blockedTopics').value)
-          }
-        })
+    // ─── Dev tool helpers ─────────────────────────────────────────────────────
+    const devOut = $('devOutput');
+    function devShow(data) { devOut.textContent = JSON.stringify(data, null, 2); }
+
+    function devUid() {
+      const id = $('devUserId').value.trim() || localStorage.getItem('devUserId') || '';
+      if (!id) throw new Error('No user ID — create a user first.');
+      $('devUserId').value = id;
+      return id;
+    }
+
+    async function devCreateUser() {
+      try {
+        const data = await api('/api/users/anonymous', { method: 'POST', body: JSON.stringify({}) });
+        $('devUserId').value = data.anonymousUserId;
+        localStorage.setItem('devUserId', data.anonymousUserId);
+        devShow(data);
+        if (S.sources) loadStats();
+      } catch (err) { devShow(err); }
+    }
+
+    async function devAcceptConsent() {
+      try {
+        const data = await api('/api/consent', {
+          method: 'POST',
+          body: JSON.stringify({
+            anonymousUserId: devUid(),
+            consent: true,
+            scopes: ['app_activity', 'approved_platform_activity', 'recommendations', 'ai_summary']
+          })
+        });
+        devShow(data);
+      } catch (err) { devShow(err); }
+    }
+
+    async function devTrackEvent() {
+      try {
+        const data = await api('/api/events/track', {
+          method: 'POST',
+          body: JSON.stringify({
+            anonymousUserId: devUid(),
+            eventType: $('devEventType').value,
+            topic: $('devTopic').value,
+            source: $('devSource').value,
+            timeSpentSeconds: Number($('devSeconds').value || 0),
+            contentType: 'video',
+            metadata: {}
+          })
+        });
+        devShow(data);
+        if (S.sources) loadStats();
+      } catch (err) { devShow(err); }
+    }
+
+    async function devLoadProfile() {
+      try {
+        const data = await api('/api/profiles/' + devUid());
+        devShow(data);
+      } catch (err) { devShow(err); }
+    }
+
+    async function devDeleteUser() {
+      if (!confirm('Delete this user and all their tracked data?')) return;
+      try {
+        const data = await api('/api/users/' + devUid(), { method: 'DELETE' });
+        devShow(data);
+        $('devUserId').value = '';
+        localStorage.removeItem('devUserId');
+        if (S.sources) loadStats();
+      } catch (err) { devShow(err); }
+    }
+
+    async function devAdminEvents() {
+      try { devShow(await api('/api/admin/events', { headers: adminHeaders() })); }
+      catch (err) { devShow(err); }
+    }
+
+    async function devConsentHistory() {
+      try { devShow(await api('/api/admin/consent-history', { headers: adminHeaders() })); }
+      catch (err) { devShow(err); }
+    }
+
+    async function devRunRetention() {
+      try {
+        devShow(await api('/api/admin/retention/run', { method: 'POST', headers: adminHeaders() }));
+      } catch (err) { devShow(err); }
+    }
+
+    // ─── Integration section ──────────────────────────────────────────────────
+    const OPEN_INTEG = new Set();
+
+    function toggleInteg(id) {
+      const body = $('integ-' + id);
+      if (!body) return;
+      const isOpen = body.classList.contains('open');
+      body.classList.toggle('open', !isOpen);
+      if (!isOpen) renderSnippet(id);
+    }
+
+    function getServerUrl() {
+      return window.location.origin;
+    }
+
+    function copyServerUrl() {
+      navigator.clipboard.writeText(getServerUrl()).then(() => {
+        const el = $('serverUrlDisplay');
+        const orig = el.textContent;
+        el.textContent = 'Copied!';
+        setTimeout(() => { el.textContent = orig; }, 1500);
       });
-      userInput.value = data.anonymousUserId;
-      localStorage.setItem('anonymousUserId', data.anonymousUserId);
-      renderProfile(data.profile);
     }
 
-    async function saveConsent(consent) {
-      const data = await request('/api/consent', {
-        method: 'POST',
-        body: JSON.stringify({
-          anonymousUserId: currentUserId(),
-          consent,
-          consentTextVersion: '1.1',
-          scopes: selectedScopes(),
-          source: 'demo_dashboard'
-        })
-      });
-      renderProfile(data.profile);
-    }
-
-    async function savePreferences() {
-      const data = await request('/api/users/' + currentUserId() + '/preferences', {
-        method: 'POST',
-        body: JSON.stringify({
-          language: document.getElementById('language').value,
-          country: document.getElementById('country').value,
-          ageGroup: document.getElementById('ageGroup').value,
-          preferredFormats: splitList(document.getElementById('preferredFormats').value),
-          preferredTopics: splitList(document.getElementById('preferredTopics').value),
-          blockedTopics: splitList(document.getElementById('blockedTopics').value)
-        })
-      });
-      renderProfile(data.profile);
-    }
-
-    async function trackEvent() {
-      const data = await request('/api/events/track', {
-        method: 'POST',
-        body: JSON.stringify({
-          anonymousUserId: currentUserId(),
-          eventType: document.getElementById('eventType').value,
-          topic: document.getElementById('topic').value,
-          contentType: document.getElementById('contentType').value,
-          source: document.getElementById('source').value,
-          timeSpentSeconds: Number(document.getElementById('timeSpentSeconds').value || 0),
-          metadata: {
-            contentId: document.getElementById('contentId').value,
-            campaignId: document.getElementById('campaignId').value,
-            platform: document.getElementById('source').value,
-            page: document.getElementById('page').value,
-            language: document.getElementById('language').value
-          }
-        })
-      });
-      renderProfile(data.profile);
-    }
-
-    async function loadProfile() {
-      const data = await request('/api/profiles/' + currentUserId());
-      renderProfile(data.profile);
-    }
-
-    async function getRecommendations() {
-      const data = await request('/api/recommendations/' + currentUserId());
-      document.getElementById('recommendations').innerHTML = (data.recommendations || []).map(item => `
-        <div class="recommendation">
-          <strong>${item.title}</strong>
-          <small>${item.topic.replaceAll('_', ' ')} / ${item.type.replaceAll('_', ' ')} / score ${item.recommendationScore}</small><br />
-          <small>${(item.reasons || []).join(', ')}</small>
-        </div>
-      `).join('');
-    }
-
-    async function loadSettings() {
-      const data = await request('/api/users/' + currentUserId() + '/settings');
-      const scopes = new Set(data.settings.consentScopes || []);
-      document.querySelectorAll('#scopeChecks input').forEach(input => {
-        input.checked = scopes.has(input.value);
+    function copySnippet(id) {
+      const pre = $('snippet-' + id);
+      if (!pre) return;
+      navigator.clipboard.writeText(pre.textContent).then(() => {
+        const btns = document.querySelectorAll(`#integ-${id} .copy-btn`);
+        btns.forEach(b => {
+          const orig = b.textContent;
+          b.textContent = 'Copied!';
+          setTimeout(() => { b.textContent = orig; }, 1500);
+        });
       });
     }
 
-    async function resetProfile() {
-      const data = await request('/api/profiles/' + currentUserId() + '/reset', { method: 'POST' });
-      renderProfile(data.profile);
-    }
+    function renderSnippet(id) {
+      const url = getServerUrl();
+      const embedSrc = $('embedSource');
+      const source = embedSrc ? (embedSrc.value || 'healing_school_app') : 'healing_school_app';
 
-    async function deleteUser() {
-      if (!confirm('Delete this anonymous user and all tracked events?')) return;
-      await request('/api/users/' + currentUserId(), { method: 'DELETE' });
-      userInput.value = '';
-      localStorage.removeItem('anonymousUserId');
-    }
+      const snippets = {
+        website: `<!-- Paste inside <head> or before </body> — that's it! -->
+<script src="${url}/embed.js?source=${source}"><\/script>
 
-    async function loadAdminEvents() {
-      await request('/api/admin/events', { headers: adminHeaders() });
-    }
+<!-- Auto-tracked: page views, searches, time on page, SPA navigation -->
 
-    async function loadConsentHistory() {
-      await request('/api/admin/consent-history', { headers: adminHeaders() });
-    }
+<!-- Optional: track specific actions manually -->
+<script>
+  FaithEngine.track('video_watched', 'healing testimonies', { timeSpentSeconds: 120 });
+  FaithEngine.track('article_read', 'prayer');
+  FaithEngine.track('content_saved', 'devotional');
+<\/script>`,
 
-    async function runRetention() {
-      await request('/api/admin/retention/run', {
-        method: 'POST',
-        headers: adminHeaders()
+        js: `const BASE = '${url}';
+const SOURCE = '${source}';
+
+// ── Step 1: Get or create an anonymous user ──
+async function getOrCreateUser() {
+  let userId = localStorage.getItem('faith_uid');
+  if (!userId) {
+    const res = await fetch(BASE + '/api/users/anonymous', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({})
+    });
+    const data = await res.json();
+    userId = data.anonymousUserId;
+    localStorage.setItem('faith_uid', userId);
+  }
+  return userId;
+}
+
+// ── Step 2: Track an interest event ──
+async function track(eventType, topic, options = {}) {
+  const userId = await getOrCreateUser();
+  await fetch(BASE + '/api/events/track', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      anonymousUserId: userId,
+      eventType,   // 'video_watched' | 'article_read' | 'content_saved' | 'search_topic' ...
+      topic,       // 'healing testimonies' | 'prayer' | 'devotional' | 'faith for healing' ...
+      source: SOURCE,
+      ...options
+    })
+  });
+}
+
+// ── Usage ──
+track('video_watched', 'healing testimonies', { timeSpentSeconds: 180 });
+track('article_read', 'prayer');
+track('search_topic', 'healing streams');`,
+
+        react: `// hooks/useFaithEngine.js
+import { useEffect, useRef } from 'react';
+
+const BASE = '${url}';
+const SOURCE = '${source}';
+
+export function useFaithEngine() {
+  const userId = useRef(localStorage.getItem('faith_uid'));
+
+  useEffect(() => {
+    if (userId.current) return;
+    fetch(BASE + '/api/users/anonymous', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({})
+    })
+      .then(r => r.json())
+      .then(data => {
+        userId.current = data.anonymousUserId;
+        localStorage.setItem('faith_uid', data.anonymousUserId);
       });
+  }, []);
+
+  async function track(eventType, topic, options = {}) {
+    if (!userId.current) return;
+    await fetch(BASE + '/api/events/track', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        anonymousUserId: userId.current,
+        eventType,
+        topic,
+        source: SOURCE,
+        ...options
+      })
+    });
+  }
+
+  return { track, getUserId: () => userId.current };
+}
+
+// ── Usage ──
+// const { track } = useFaithEngine();
+// track('video_watched', 'healing testimonies', { timeSpentSeconds: 120 });
+// track('article_read', 'prayer');`,
+
+        rn: `// utils/faithEngine.js  (React Native / Expo)
+import AsyncStorage from '@react-native-async-storage/async-storage';
+
+const BASE = '${url}';
+const SOURCE = '${source}';
+
+async function getOrCreateUser() {
+  let userId = await AsyncStorage.getItem('faith_uid');
+  if (!userId) {
+    const res = await fetch(BASE + '/api/users/anonymous', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({})
+    });
+    const data = await res.json();
+    userId = data.anonymousUserId;
+    await AsyncStorage.setItem('faith_uid', userId);
+  }
+  return userId;
+}
+
+export async function track(eventType, topic, options = {}) {
+  const userId = await getOrCreateUser();
+  await fetch(BASE + '/api/events/track', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      anonymousUserId: userId,
+      eventType,
+      topic,
+      source: SOURCE,
+      ...options
+    })
+  });
+}
+
+// ── Usage ──
+// import { track } from './utils/faithEngine';
+// track('video_watched', 'healing testimonies', { timeSpentSeconds: 90 });
+// track('article_read', 'prayer');`,
+
+        python: `# faith_engine.py
+import requests, json
+from pathlib import Path
+
+BASE = '${url}'
+SOURCE = '${source}'
+_STATE_FILE = Path('.faith_engine.json')
+
+def _state():
+    try: return json.loads(_STATE_FILE.read_text())
+    except: return {}
+
+def _save(data):
+    _STATE_FILE.write_text(json.dumps(data))
+
+def get_or_create_user():
+    s = _state()
+    if 'user_id' in s:
+        return s['user_id']
+    user_id = requests.post(f'{BASE}/api/users/anonymous', json={}).json()['anonymousUserId']
+    _save({**s, 'user_id': user_id})
+    return user_id
+
+def track(event_type, topic, time_spent_seconds=0, **kwargs):
+    user_id = get_or_create_user()
+    requests.post(f'{BASE}/api/events/track', json={
+        'anonymousUserId': user_id,
+        'eventType': event_type,
+        'topic': topic,
+        'source': SOURCE,
+        'timeSpentSeconds': time_spent_seconds,
+        **kwargs
+    })
+
+# ── Usage ──
+# track('article_read', 'prayer', time_spent_seconds=120)
+# track('video_watched', 'healing testimonies', time_spent_seconds=300)
+# track('search_topic', 'healing streams')`
+      };
+
+      const pre = $('snippet-' + id);
+      if (pre && snippets[id]) pre.textContent = snippets[id];
+    }
+
+    function initIntegration(sources) {
+      $('serverUrlDisplay').textContent = getServerUrl();
+
+      const sel = $('embedSource');
+      if (sel && sources && sources.length) {
+        sel.innerHTML = sources.map(s =>
+          `<option value="${s}">${sourceName(s)}</option>`
+        ).join('');
+      }
+
+      // Render all snippets (website card is open by default, others pre-rendered)
+      ['website', 'js', 'python', 'react', 'rn'].forEach(id => renderSnippet(id));
     }
 
     boot();

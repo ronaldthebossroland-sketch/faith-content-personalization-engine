@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Beginner Guide | Faith Content Engine</title>
+  <style>
+    :root {
+      --bg: #f6f8fb;
+      --surface: #ffffff;
+      --border: #d9e2ec;
+      --text: #102033;
+      --muted: #65758b;
+      --primary: #0f766e;
+      --soft: #eef6f5;
+      --code: #111827;
+      --radius: 8px;
+      --shadow: 0 1px 2px rgba(15,23,42,.05), 0 10px 28px rgba(15,23,42,.07);
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      color: var(--text);
+      background: linear-gradient(180deg, #eef6f5 0, var(--bg) 260px);
+      line-height: 1.6;
+    }
+
+    header {
+      background: #101827;
+      color: #fff;
+      padding: 24px;
+    }
+
+    .wrap {
+      max-width: 980px;
+      margin: 0 auto;
+    }
+
+    .top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: 28px;
+      letter-spacing: 0;
+    }
+
+    header p {
+      margin: 6px 0 0;
+      color: #b8c4d2;
+    }
+
+    a {
+      color: var(--primary);
+      font-weight: 700;
+    }
+
+    .back {
+      color: #d7fff7;
+      border: 1px solid rgba(255,255,255,.18);
+      border-radius: 999px;
+      padding: 8px 13px;
+      text-decoration: none;
+      white-space: nowrap;
+    }
+
+    main {
+      padding: 28px 24px 72px;
+    }
+
+    section {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 22px;
+      margin: 16px 0;
+    }
+
+    h2 {
+      margin: 0 0 10px;
+      font-size: 20px;
+    }
+
+    h3 {
+      margin: 18px 0 8px;
+      font-size: 16px;
+    }
+
+    p { margin: 0 0 12px; }
+
+    ul, ol {
+      margin: 10px 0 0;
+      padding-left: 22px;
+    }
+
+    li { margin: 7px 0; }
+
+    code, pre {
+      font-family: "SFMono-Regular", Consolas, monospace;
+    }
+
+    code {
+      background: #eef3f7;
+      border-radius: 5px;
+      padding: 2px 5px;
+      color: #0f766e;
+    }
+
+    pre {
+      background: var(--code);
+      color: #dbeafe;
+      border-radius: 8px;
+      padding: 14px;
+      overflow: auto;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+
+    .callout {
+      background: var(--soft);
+      border-color: #cfe4df;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 12px;
+    }
+
+    .mini {
+      background: #fff;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 14px;
+    }
+
+    .mini b { display: block; margin-bottom: 4px; }
+    .mini span { color: var(--muted); font-size: 14px; }
+
+    .checklist li::marker { color: var(--primary); }
+
+    @media (max-width: 760px) {
+      .grid { grid-template-columns: 1fr; }
+      h1 { font-size: 24px; }
+      section { padding: 18px; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="wrap top">
+      <div>
+        <h1>Faith Content Engine Beginner Guide</h1>
+        <p>A plain-English guide for using the dashboard, backend, and tracking tools.</p>
+      </div>
+      <a class="back" href="/">Back to Dashboard</a>
+    </div>
+  </header>
+
+  <main class="wrap">
+    <section class="callout">
+      <h2>What This Website Is</h2>
+      <p>This website is an admin dashboard for a faith-content personalization engine. It helps you see which approved apps or websites are sending user activity, then turns that activity into anonymous profiles and content recommendations.</p>
+      <p>The short version:</p>
+      <div class="grid">
+        <div class="mini">
+          <b>Vercel dashboard</b>
+          <span>The website you are looking at.</span>
+        </div>
+        <div class="mini">
+          <b>Render API</b>
+          <span>The backend that receives tracking events.</span>
+        </div>
+        <div class="mini">
+          <b>Supabase database</b>
+          <span>Where users, consent, and events are stored.</span>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <h2>Your Live URLs</h2>
+      <p>These are the two main links in this setup:</p>
+      <pre>Dashboard:
+https://faith-content-personalization-engin.vercel.app
+
+Backend API:
+https://faith-content-personalization-engine.onrender.com</pre>
+      <p>The dashboard should use the backend API URL in the <code>API Endpoint</code> field.</p>
+    </section>
+
+    <section>
+      <h2>How To Use The Dashboard</h2>
+      <ol class="checklist">
+        <li>Open the dashboard URL.</li>
+        <li>Make sure <code>API Endpoint</code> is set to your Render backend URL.</li>
+        <li>Enter your private <code>ADMIN_API_KEY</code> in the Admin Key field.</li>
+        <li>Click <code>Load Stats</code>.</li>
+        <li>The locked source cards will show real users, events, and profile summaries.</li>
+      </ol>
+      <p>Do not share your admin key with normal website visitors. It is only for you or trusted admins.</p>
+    </section>
+
+    <section>
+      <h2>What The Dashboard Numbers Mean</h2>
+      <ul>
+        <li><b>Connected Apps:</b> approved sources that are allowed to send activity.</li>
+        <li><b>Total Users:</b> anonymous user profiles created by your app or tests.</li>
+        <li><b>Total Events:</b> tracked actions like viewing content, reading articles, or watching videos.</li>
+        <li><b>Data Retention:</b> how many days the system keeps event data before removing old events.</li>
+      </ul>
+    </section>
+
+    <section>
+      <h2>How To Test It Without Another Website</h2>
+      <ol class="checklist">
+        <li>Scroll to <code>Developer Tools</code>.</li>
+        <li>Click <code>Create User</code>.</li>
+        <li>Click <code>Accept Consent</code>.</li>
+        <li>Choose an event type, source, and topic.</li>
+        <li>Click <code>Track Event</code>.</li>
+        <li>Click <code>View Profile</code> to see the generated profile.</li>
+        <li>Go back to the top and click <code>Load Stats</code> again.</li>
+      </ol>
+    </section>
+
+    <section>
+      <h2>How To Connect A Real Website</h2>
+      <p>Scroll to <code>Connect Your App or Website</code>. Choose the source for that website, then copy the embed script.</p>
+      <pre>&lt;script src="https://faith-content-personalization-engine.onrender.com/embed.js?source=official_ministry_website"&gt;&lt;/script&gt;</pre>
+      <p>Paste that script into the website you want to track. The script shows a consent banner first. If the user allows personalization, it can send approved activity to the backend.</p>
+    </section>
+
+    <section>
+      <h2>What Counts As An Approved Source</h2>
+      <p>An approved source is a website, app, page, or campaign you trust to send activity into this system.</p>
+      <p>Current examples:</p>
+      <ul>
+        <li><code>healing_school_app</code></li>
+        <li><code>healing_streams_registration_page</code></li>
+        <li><code>approved_healing_school_campaign</code></li>
+        <li><code>official_ministry_website</code></li>
+        <li><code>approved_email_campaign</code></li>
+      </ul>
+    </section>
+
+    <section>
+      <h2>Privacy Rules</h2>
+      <p>This system is designed to track only consented content activity. It should not collect private messages, passwords, bank details, contacts, microphone recordings, secret browser history, or hidden activity from other apps.</p>
+      <p>If a user turns personalization off or asks to delete their anonymous profile, the dashboard and API include tools for that.</p>
+    </section>
+
+    <section>
+      <h2>Common Problems</h2>
+      <h3>Stats stay locked</h3>
+      <p>Enter the correct admin key and click <code>Load Stats</code>.</p>
+
+      <h3>API says offline</h3>
+      <p>Check that the API endpoint is exactly <code>https://faith-content-personalization-engine.onrender.com</code>. Render free services can also take a little time to wake up.</p>
+
+      <h3>Events are rejected</h3>
+      <p>The user may not have accepted consent, or the source name may not be in the approved source list.</p>
+
+      <h3>Another website cannot send events</h3>
+      <p>Add that website domain to Render's <code>CORS_ORIGIN</code> environment variable, then redeploy the backend.</p>
+    </section>
+
+    <section class="callout">
+      <h2>Simple Mental Model</h2>
+      <p>Think of it like this: the dashboard is your control room, the Render API is the worker receiving signals, and Supabase is the filing cabinet where the records are kept.</p>
+    </section>
+  </main>
+</body>
+</html>

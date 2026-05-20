@@ -60,6 +60,19 @@
     .brand p { font-size: 12px; opacity: .75; margin-top: 1px; }
     .header-chips { display: flex; gap: 8px; flex-wrap: wrap; }
 
+    .top-link {
+      color: #d7fff7;
+      border: 1px solid rgba(255,255,255,.18);
+      border-radius: 999px;
+      padding: 6px 12px;
+      font-size: 13px;
+      font-weight: 700;
+      text-decoration: none;
+      white-space: nowrap;
+    }
+
+    .top-link:hover { background: rgba(255,255,255,.1); }
+
     /* ── Chips ── */
     .chip {
       display: inline-flex;
@@ -790,6 +803,7 @@
         <p>Consent-first interest profiling for faith platforms</p>
       </div>
       <div class="header-chips">
+        <a class="top-link" href="/getting-started.html">Beginner Guide</a>
         <span class="chip chip-white" id="apiChip"><span class="dot dot-gray"></span> API checking</span>
         <span class="chip chip-white" id="aiChip">AI unknown</span>
         <span class="chip chip-white" id="retentionChip">Retention unknown</span>

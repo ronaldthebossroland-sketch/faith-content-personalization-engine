@@ -205,6 +205,56 @@ test('admin user summaries expose all source counts for dashboard grouping', asy
   });
 });
 
+test('admins can link a consented anonymous profile to a known user', async () => {
+  const { runtime } = createTestRuntime();
+
+  await withServer(runtime, async baseUrl => {
+    const anonymousUserId = await createUser(baseUrl);
+
+    const beforeConsent = await jsonRequest(baseUrl, `/api/admin/users/${anonymousUserId}/known-user`, {
+      method: 'POST',
+      headers: { 'x-admin-api-key': 'test-admin-key' },
+      body: JSON.stringify({
+        displayName: 'Ada Example',
+        email: 'ADA@EXAMPLE.COM',
+        externalUserId: 'crm_123'
+      })
+    });
+    assert.equal(beforeConsent.response.status, 403);
+
+    await saveConsent(baseUrl, anonymousUserId, ['app_activity', 'recommendations']);
+
+    const linked = await jsonRequest(baseUrl, `/api/admin/users/${anonymousUserId}/known-user`, {
+      method: 'POST',
+      headers: { 'x-admin-api-key': 'test-admin-key' },
+      body: JSON.stringify({
+        displayName: 'Ada Example',
+        email: 'ADA@EXAMPLE.COM',
+        externalUserId: 'crm_123',
+        source: 'church_crm'
+      })
+    });
+    assert.equal(linked.response.status, 200);
+    assert.equal(linked.data.knownUser.displayName, 'Ada Example');
+    assert.equal(linked.data.knownUser.email, 'ada@example.com');
+
+    const adminUsers = await jsonRequest(baseUrl, '/api/admin/users', {
+      headers: { 'x-admin-api-key': 'test-admin-key' }
+    });
+    assert.equal(adminUsers.data.users[0].knownUser.externalUserId, 'crm_123');
+
+    const publicProfile = await jsonRequest(baseUrl, `/api/profiles/${anonymousUserId}`);
+    assert.equal(Object.hasOwn(publicProfile.data.profile, 'knownUser'), false);
+
+    const unlinked = await jsonRequest(baseUrl, `/api/admin/users/${anonymousUserId}/known-user`, {
+      method: 'DELETE',
+      headers: { 'x-admin-api-key': 'test-admin-key' }
+    });
+    assert.equal(unlinked.response.status, 200);
+    assert.equal(runtime.store.users[anonymousUserId].knownUser, null);
+  });
+});
+
 test('embed script waits for consent before creating a user or tracking', async () => {
   const { runtime } = createTestRuntime();
 

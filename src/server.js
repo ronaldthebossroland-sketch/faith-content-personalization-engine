@@ -324,6 +324,7 @@ function migrateStore(rawStore) {
       ? user.consentScopes.filter(scope => allowedConsentScopes.has(scope))
       : (user.consent ? defaultConsentScopes : []);
     user.preferences = normalizePreferences(user.preferences || {});
+    user.knownUser = sanitizeKnownUser(user.knownUser);
     user.lastUpdatedAt = user.lastUpdatedAt || null;
   }
 
@@ -674,6 +675,34 @@ function sanitizeMetadata(metadata = {}) {
   };
 }
 
+function cleanString(value, maxLength) {
+  if (value === undefined || value === null) return null;
+  const cleaned = String(value).trim().replace(/\s+/g, ' ').slice(0, maxLength);
+  return cleaned || null;
+}
+
+function normalizeEmail(value) {
+  const cleaned = cleanString(value, 120);
+  if (!cleaned) return null;
+  const email = cleaned.toLowerCase();
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) ? email : null;
+}
+
+function sanitizeKnownUser(rawKnownUser = {}) {
+  if (!rawKnownUser || typeof rawKnownUser !== 'object') return null;
+
+  const knownUser = {
+    displayName: cleanString(rawKnownUser.displayName || rawKnownUser.name, 80),
+    email: normalizeEmail(rawKnownUser.email),
+    externalUserId: cleanString(rawKnownUser.externalUserId || rawKnownUser.userId, 100),
+    source: normalizeKey(rawKnownUser.source || 'trusted_app_login', 'trusted_app_login'),
+    linkedAt: rawKnownUser.linkedAt || new Date().toISOString()
+  };
+
+  if (!knownUser.displayName && !knownUser.email && !knownUser.externalUserId) return null;
+  return knownUser;
+}
+
 function buildSourceCounts(events) {
   return events.reduce((counts, event) => {
     counts[event.source] = (counts[event.source] || 0) + 1;
@@ -723,6 +752,7 @@ function createRuntime(options = {}) {
         consentTextVersion: null,
         consentUpdatedAt: null,
         consentScopes: [],
+        knownUser: null,
         preferences: normalizePreferences(preferences),
         lastUpdatedAt: null
       };
@@ -1712,6 +1742,59 @@ Respond only with valid JSON:
     }
   });
 
+  app.post('/api/admin/users/:anonymousUserId/known-user', requireAdmin, async (req, res) => {
+    try {
+      const user = store.users[req.params.anonymousUserId];
+      if (!user) return res.status(404).json({ success: false, message: 'User not found.' });
+      if (!user.consent) {
+        return res.status(403).json({
+          success: false,
+          message: 'Known-user linking requires the user to consent first.'
+        });
+      }
+
+      const knownUser = sanitizeKnownUser(req.body || {});
+      if (!knownUser) {
+        return res.status(400).json({
+          success: false,
+          message: 'Provide at least one of displayName, email, or externalUserId.'
+        });
+      }
+
+      user.knownUser = knownUser;
+      user.lastUpdatedAt = new Date().toISOString();
+      await saveStore();
+
+      return res.json({
+        success: true,
+        message: 'Known user linked.',
+        anonymousUserId: user.anonymousUserId,
+        knownUser: user.knownUser
+      });
+    } catch (err) {
+      return res.status(500).json({ success: false, message: 'Failed to link known user.', error: err.message });
+    }
+  });
+
+  app.delete('/api/admin/users/:anonymousUserId/known-user', requireAdmin, async (req, res) => {
+    try {
+      const user = store.users[req.params.anonymousUserId];
+      if (!user) return res.status(404).json({ success: false, message: 'User not found.' });
+
+      user.knownUser = null;
+      user.lastUpdatedAt = new Date().toISOString();
+      await saveStore();
+
+      return res.json({
+        success: true,
+        message: 'Known user unlinked.',
+        anonymousUserId: user.anonymousUserId
+      });
+    } catch (err) {
+      return res.status(500).json({ success: false, message: 'Failed to unlink known user.', error: err.message });
+    }
+  });
+
   app.get('/api/admin/sources', requireAdmin, (req, res) => {
     const sourceCounts = {};
     const sourceUsers = {};
@@ -1792,6 +1875,7 @@ Respond only with valid JSON:
 
       return {
         anonymousUserId: user.anonymousUserId,
+        knownUser: user.knownUser || null,
         consent: user.consent,
         consentScopes: user.consentScopes || [],
         totalEvents: userEvents.length,

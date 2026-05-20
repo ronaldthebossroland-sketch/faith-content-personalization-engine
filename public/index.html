@@ -3,75 +3,111 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Faith Content Dashboard</title>
+  <title>Faith Content Engine — Dashboard</title>
   <style>
     :root {
-      --bg: #f1f5f9;
+      --bg: #f0f4f8;
       --surface: #ffffff;
-      --border: #e2e8f0;
-      --primary: #0f766e;
-      --primary-hover: #0d9488;
+      --surface-alt: #f8fafc;
+      --border: #e1e8f0;
+      --border-strong: #c8d6e5;
+
+      --primary: #0d9488;
+      --primary-dark: #0f766e;
       --primary-light: #ccfbf1;
-      --text: #0f172a;
-      --muted: #64748b;
-      --green: #16a34a;
-      --green-bg: #f0fdf4;
-      --green-border: #86efac;
-      --yellow: #ca8a04;
-      --yellow-bg: #fefce8;
+      --primary-glow: rgba(13,148,136,.15);
+
+      --text: #0d1b2a;
+      --text-sec: #4a5568;
+      --muted: #6b7a8d;
+
+      --green: #059669;
+      --green-bg: #ecfdf5;
+      --green-border: #a7f3d0;
+      --yellow: #d97706;
+      --yellow-bg: #fffbeb;
       --red: #dc2626;
       --red-bg: #fef2f2;
-      --navy: #1e293b;
-      --radius: 10px;
-      --shadow: 0 1px 3px rgba(0,0,0,.08), 0 1px 2px rgba(0,0,0,.04);
+
+      --navy: #0a0f1e;
+      --navy-mid: #1e293b;
+
+      --r: 10px;
+      --r-sm: 6px;
+      --r-lg: 14px;
+
+      --shadow-sm: 0 1px 3px rgba(0,0,0,.06),0 1px 2px rgba(0,0,0,.04);
+      --shadow: 0 4px 6px -1px rgba(0,0,0,.07),0 2px 4px -1px rgba(0,0,0,.04);
+
+      --font: system-ui,-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
+      --mono: 'SFMono-Regular',Consolas,'Liberation Mono',monospace;
     }
 
-    * { box-sizing: border-box; margin: 0; padding: 0; }
+    *,*::before,*::after { box-sizing:border-box; margin:0; padding:0; }
 
     body {
-      font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      font-family: var(--font);
       background: var(--bg);
       color: var(--text);
       font-size: 15px;
-      line-height: 1.5;
+      line-height: 1.55;
+      -webkit-font-smoothing: antialiased;
     }
 
     /* ── Header ── */
     header {
-      background: var(--primary);
-      color: #fff;
-      padding: 0 20px;
+      background: var(--navy);
       position: sticky;
       top: 0;
-      z-index: 10;
-      box-shadow: 0 2px 8px rgba(0,0,0,.15);
+      z-index: 100;
+      border-bottom: 1px solid rgba(255,255,255,.06);
     }
+
     .header-inner {
-      max-width: 1120px;
+      max-width: 1280px;
       margin: 0 auto;
+      padding: 0 24px;
+      height: 68px;
       display: flex;
       align-items: center;
-      gap: 16px;
-      padding: 14px 0;
-      flex-wrap: wrap;
+      gap: 20px;
     }
-    .brand { flex: 1; }
-    .brand h1 { font-size: 18px; font-weight: 700; letter-spacing: -.01em; }
-    .brand p { font-size: 12px; opacity: .75; margin-top: 1px; }
-    .header-chips { display: flex; gap: 8px; flex-wrap: wrap; }
 
-    .top-link {
-      color: #d7fff7;
-      border: 1px solid rgba(255,255,255,.18);
-      border-radius: 999px;
-      padding: 6px 12px;
-      font-size: 13px;
-      font-weight: 700;
+    .brand { display:flex; align-items:center; gap:12px; flex:1; }
+
+    .brand-logo {
+      width: 36px;
+      height: 36px;
+      background: linear-gradient(135deg, var(--primary), #0a6b65);
+      border-radius: 9px;
+      display: grid;
+      place-items: center;
+      flex-shrink: 0;
+    }
+
+    .brand-logo svg {
+      width: 17px; height: 17px;
+      fill: none; stroke: #fff;
+      stroke-width: 2; stroke-linecap: round; stroke-linejoin: round;
+    }
+
+    .brand-text h1 { font-size:16px; font-weight:700; color:#fff; letter-spacing:-.01em; }
+    .brand-text p  { font-size:12px; color:#8496b0; margin-top:2px; }
+
+    .header-status { display:flex; gap:6px; flex-wrap:wrap; }
+
+    .nav-link {
+      color: #a0b0c8;
       text-decoration: none;
+      font-size: 13px;
+      font-weight: 600;
+      padding: 6px 14px;
+      border-radius: 999px;
+      border: 1px solid rgba(255,255,255,.1);
+      transition: all .15s;
       white-space: nowrap;
     }
-
-    .top-link:hover { background: rgba(255,255,255,.1); }
+    .nav-link:hover { color:#fff; background:rgba(255,255,255,.08); border-color:rgba(255,255,255,.18); }
 
     /* ── Chips ── */
     .chip {
@@ -79,747 +115,513 @@
       align-items: center;
       gap: 5px;
       padding: 4px 10px;
-      border-radius: 20px;
+      border-radius: 999px;
       font-size: 12px;
       font-weight: 600;
-      white-space: nowrap;
     }
-    .chip-white { background: rgba(255,255,255,.18); color: #fff; }
-    .chip-green { background: var(--green-bg); color: var(--green); }
-    .chip-yellow { background: var(--yellow-bg); color: var(--yellow); }
-    .chip-red { background: var(--red-bg); color: var(--red); }
-    .chip-gray { background: #e2e8f0; color: var(--muted); }
-    .dot { width: 7px; height: 7px; border-radius: 50%; display: inline-block; flex-shrink: 0; }
-    .dot-green { background: var(--green); }
-    .dot-yellow { background: var(--yellow); }
-    .dot-gray { background: var(--muted); }
-    .dot-red { background: var(--red); }
+    .chip-green  { background:var(--green-bg);  color:var(--green);  }
+    .chip-yellow { background:var(--yellow-bg); color:var(--yellow); }
+    .chip-red    { background:var(--red-bg);    color:var(--red);    }
+    .chip-gray   { background:rgba(255,255,255,.08); color:#8496b0; border:1px solid rgba(255,255,255,.08); }
+    .chip-white  { background:rgba(255,255,255,.08); color:#c8d8ec; border:1px solid rgba(255,255,255,.08); }
 
-    /* ── Page shell ── */
-    .page { max-width: 1120px; margin: 0 auto; padding: 20px 20px 60px; }
+    .dot { width:6px; height:6px; border-radius:50%; flex-shrink:0; }
+    .dot-green  { background:var(--green);  }
+    .dot-yellow { background:var(--yellow); }
+    .dot-red    { background:var(--red);    }
+    .dot-gray   { background:#6b7a8d;       }
 
-    /* ── Admin banner ── */
+    /* ── Page ── */
+    .page { max-width:1280px; margin:0 auto; padding:28px 24px 80px; }
+
+    /* ── Admin Banner ── */
     .admin-banner {
       background: var(--surface);
       border: 1px solid var(--border);
-      border-radius: var(--radius);
-      padding: 14px 18px;
-      margin-bottom: 20px;
+      border-radius: var(--r-lg);
+      padding: 18px 20px;
       display: flex;
-      align-items: center;
+      align-items: flex-end;
       gap: 12px;
       flex-wrap: wrap;
+      box-shadow: var(--shadow);
+      margin-bottom: 28px;
     }
     .admin-banner.loaded {
-      background: var(--green-bg);
       border-color: var(--green-border);
+      background: linear-gradient(to right, var(--green-bg), #fff 60%);
     }
-    .admin-banner .banner-label {
-      font-size: 13px;
+
+    .banner-field { flex:1 1 220px; }
+    .banner-field label {
+      display: block;
+      font-size: 11px;
       font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: .06em;
       color: var(--muted);
-      white-space: nowrap;
+      margin-bottom: 6px;
     }
-    .admin-banner.loaded .banner-label { color: var(--green); }
-    .admin-banner input {
-      flex: 1;
-      min-width: 200px;
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      padding: 8px 12px;
+    .banner-field input { width:100%; }
+
+    .banner-status { font-size:13px; color:var(--green); font-weight:700; white-space:nowrap; }
+
+    /* ── Inputs ── */
+    input, select {
+      border: 1px solid var(--border-strong);
+      border-radius: var(--r-sm);
+      padding: 9px 12px;
       font: inherit;
       font-size: 14px;
-      background: #fff;
+      color: var(--text);
+      background: var(--surface);
+      outline: none;
+      transition: border-color .15s, box-shadow .15s;
     }
-    .banner-status { font-size: 13px; color: var(--green); font-weight: 600; }
+    input:focus, select:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px var(--primary-glow);
+    }
 
     /* ── Buttons ── */
-    button { cursor: pointer; font: inherit; border: 0; border-radius: 8px; padding: 9px 16px; font-weight: 600; font-size: 14px; transition: background .15s; }
-    .btn-primary { background: var(--primary); color: #fff; }
-    .btn-primary:hover { background: var(--primary-hover); }
-    .btn-secondary { background: var(--navy); color: #fff; }
-    .btn-secondary:hover { background: #334155; }
-    .btn-ghost { background: #e8eef2; color: var(--text); }
-    .btn-ghost:hover { background: #cbd5e1; }
-    .btn-danger { background: var(--red); color: #fff; }
-    .btn-danger:hover { background: #b91c1c; }
-    .btn-warning { background: #d97706; color: #fff; }
-    .btn-sm { padding: 6px 14px; font-size: 13px; }
+    button {
+      cursor: pointer;
+      font: inherit;
+      border: none;
+      border-radius: var(--r-sm);
+      padding: 9px 18px;
+      font-weight: 600;
+      font-size: 14px;
+      transition: all .15s;
+      white-space: nowrap;
+      outline: none;
+    }
+    button:focus-visible { box-shadow:0 0 0 3px var(--primary-glow); }
+
+    .btn-primary  { background:var(--primary); color:#fff; box-shadow:0 1px 3px rgba(13,148,136,.3); }
+    .btn-primary:hover  { background:var(--primary-dark); transform:translateY(-1px); }
+    .btn-secondary { background:var(--navy-mid); color:#e2e8f0; }
+    .btn-secondary:hover { background:#334155; }
+    .btn-ghost { background:transparent; color:var(--text-sec); border:1px solid var(--border-strong); }
+    .btn-ghost:hover { background:var(--surface-alt); }
+    .btn-danger { background:var(--red); color:#fff; }
+    .btn-danger:hover { background:#b91c1c; }
+    .btn-warning { background:#d97706; color:#fff; }
+    .btn-warning:hover { background:#b45309; }
+    .btn-sm { padding:7px 14px; font-size:13px; }
 
     /* ── Stat cards ── */
     .stats-grid {
       display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      gap: 14px;
-      margin-bottom: 28px;
+      grid-template-columns: repeat(4,1fr);
+      gap: 16px;
+      margin-bottom: 32px;
     }
+
     .stat-card {
       background: var(--surface);
       border: 1px solid var(--border);
-      border-radius: var(--radius);
-      padding: 18px 20px;
+      border-radius: var(--r);
+      padding: 20px;
       box-shadow: var(--shadow);
+      position: relative;
+      overflow: hidden;
     }
-    .stat-label {
-      font-size: 11px;
-      font-weight: 700;
-      color: var(--muted);
-      text-transform: uppercase;
-      letter-spacing: .06em;
+    .stat-card::before {
+      content:'';
+      position:absolute;
+      top:0; left:0; right:0;
+      height:3px;
+      background:linear-gradient(to right,var(--primary),#14b8a6);
     }
-    .stat-value {
-      font-size: 32px;
-      font-weight: 800;
-      line-height: 1.1;
-      margin-top: 6px;
-      color: var(--text);
-    }
-    .stat-sub { font-size: 12px; color: var(--muted); margin-top: 3px; }
+
+    .stat-label { font-size:12px; font-weight:600; color:var(--muted); text-transform:uppercase; letter-spacing:.06em; }
+    .stat-value { font-size:36px; font-weight:800; color:var(--text); line-height:1.1; margin:8px 0 4px; letter-spacing:-.02em; }
+    .stat-sub   { font-size:12px; color:var(--muted); }
 
     /* ── Section header ── */
     .section-hdr {
       display: flex;
       align-items: baseline;
       justify-content: space-between;
-      margin-bottom: 14px;
+      margin-bottom: 16px;
     }
-    .section-hdr h2 { font-size: 17px; font-weight: 700; }
-    .section-hdr p { font-size: 13px; color: var(--muted); }
+    .section-hdr h2 { font-size:19px; font-weight:700; letter-spacing:-.01em; }
+    .section-sub { font-size:13px; color:var(--muted); }
 
     /* ── App card ── */
     .app-card {
       background: var(--surface);
       border: 1px solid var(--border);
-      border-radius: var(--radius);
+      border-radius: var(--r);
       box-shadow: var(--shadow);
-      margin-bottom: 16px;
+      margin-bottom: 14px;
       overflow: hidden;
     }
-    .app-card-top {
-      padding: 20px 22px;
-      display: flex;
-      align-items: flex-start;
-      gap: 16px;
+
+    .app-card-top { padding:20px; display:flex; align-items:flex-start; gap:16px; }
+
+    .app-icon {
+      width: 44px; height: 44px;
+      background: var(--primary-light);
+      border-radius: 10px;
+      display: grid;
+      place-items: center;
+      font-size: 22px;
+      flex-shrink: 0;
     }
-    .app-icon { font-size: 32px; line-height: 1; flex-shrink: 0; margin-top: 2px; }
-    .app-info { flex: 1; min-width: 0; }
-    .app-name { font-size: 16px; font-weight: 700; }
-    .app-key { font-size: 11px; color: var(--muted); font-family: 'SFMono-Regular', Consolas, monospace; margin-top: 2px; }
-    .app-status { flex-shrink: 0; }
+
+    .app-info { flex:1; min-width:0; }
+    .app-name { font-size:16px; font-weight:700; }
+    .app-key  { font-size:11px; color:var(--muted); font-family:var(--mono); margin-top:3px; }
+    .app-status { flex-shrink:0; margin-top:2px; }
 
     .app-numbers {
-      display: flex;
-      gap: 28px;
-      margin-top: 14px;
-      flex-wrap: wrap;
+      display: flex; gap:24px; flex-wrap:wrap;
+      margin-top:16px; padding-top:14px;
+      border-top:1px solid var(--border);
     }
-    .app-num .n { font-size: 24px; font-weight: 800; line-height: 1; }
-    .app-num .l { font-size: 11px; color: var(--muted); font-weight: 700; text-transform: uppercase; letter-spacing: .05em; margin-top: 2px; }
-    .app-last {
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-      justify-content: flex-end;
-      align-items: flex-end;
-    }
-    .app-last .l { font-size: 11px; color: var(--muted); font-weight: 700; text-transform: uppercase; letter-spacing: .05em; }
-    .app-last .n { font-size: 16px; font-weight: 700; }
+    .app-num .n { font-size:22px; font-weight:800; line-height:1; }
+    .app-num .l { font-size:11px; color:var(--muted); font-weight:600; text-transform:uppercase; letter-spacing:.05em; margin-top:3px; }
+    .app-last { flex:1; text-align:right; }
+    .app-last .l { font-size:11px; color:var(--muted); font-weight:600; text-transform:uppercase; letter-spacing:.05em; }
+    .app-last .n { font-size:15px; font-weight:700; margin-top:3px; }
 
-    .app-topics { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 12px; }
+    .app-topics { display:flex; flex-wrap:wrap; gap:6px; margin-top:12px; }
     .topic-pill {
       background: var(--primary-light);
-      color: #065f46;
+      color: var(--primary-dark);
       padding: 3px 10px;
-      border-radius: 20px;
+      border-radius: 999px;
       font-size: 12px;
       font-weight: 600;
       text-transform: capitalize;
     }
-    .no-topics { font-size: 13px; color: var(--muted); }
+    .no-topics { font-size:13px; color:var(--muted); }
 
-    /* ── Users section inside app card ── */
+    /* ── Users inside app card ── */
     .app-users-hdr {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 10px 22px;
-      background: #f8fafc;
-      border-top: 1px solid var(--border);
+      display:flex; align-items:center; justify-content:space-between;
+      padding:10px 20px;
+      background:var(--surface-alt);
+      border-top:1px solid var(--border);
     }
-    .app-users-hdr span { font-size: 13px; font-weight: 700; color: var(--muted); }
+    .app-users-hdr span { font-size:12px; font-weight:700; color:var(--muted); text-transform:uppercase; letter-spacing:.05em; }
+
     .app-users-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(270px, 1fr));
+      grid-template-columns: repeat(auto-fill,minmax(260px,1fr));
       gap: 10px;
-      padding: 14px 16px;
+      padding: 14px;
       border-top: 1px solid var(--border);
+      background: var(--surface-alt);
     }
+
     .app-users-empty {
-      padding: 20px 22px;
+      padding: 28px;
       color: var(--muted);
-      font-size: 14px;
-      border-top: 1px solid var(--border);
-      text-align: center;
-    }
-    .show-more-btn {
-      display: block;
-      width: 100%;
-      text-align: center;
-      padding: 10px;
       font-size: 13px;
-      font-weight: 700;
-      color: var(--primary);
-      background: transparent;
-      border: 0;
       border-top: 1px solid var(--border);
-      border-radius: 0;
-      cursor: pointer;
+      background: var(--surface-alt);
+      text-align: center;
     }
-    .show-more-btn:hover { background: #f8fafc; }
+
+    .show-more-btn {
+      display:block; width:100%; text-align:center;
+      padding:10px;
+      font-size:13px; font-weight:700; color:var(--primary);
+      background:var(--surface-alt);
+      border:none; border-top:1px solid var(--border);
+      border-radius:0; cursor:pointer;
+      transition:background .15s;
+    }
+    .show-more-btn:hover { background:#edf2f7; }
 
     /* ── User mini card ── */
     .user-mini {
+      background: var(--surface);
       border: 1px solid var(--border);
-      border-radius: 8px;
+      border-radius: var(--r-sm);
       padding: 12px 14px;
-      background: #fafafa;
     }
-    .user-mini-id {
-      font-family: 'SFMono-Regular', Consolas, monospace;
-      font-size: 11px;
-      color: var(--muted);
-      margin-bottom: 7px;
-    }
-    .user-mini-badges { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
-    .persona-badge {
-      font-size: 12px;
-      font-weight: 700;
-      padding: 3px 9px;
-      border-radius: 20px;
-    }
-    .p-ministry   { background: #ede9fe; color: #6d28d9; }
-    .p-healing    { background: #dbeafe; color: #1d4ed8; }
-    .p-devotional { background: #d1fae5; color: #065f46; }
-    .p-seeker     { background: #ffedd5; color: #c2410c; }
-    .p-caregiver  { background: #fce7f3; color: #9d174d; }
-    .p-general    { background: #f1f5f9; color: #475569; }
-    .p-visitor    { background: #e0f2fe; color: #0369a1; }
+    .user-mini-id { font-family:var(--mono); font-size:10px; color:var(--muted); margin-bottom:8px; }
+    .user-mini-badges { display:flex; gap:5px; align-items:center; flex-wrap:wrap; margin-bottom:8px; }
 
-    .eng-badge {
-      font-size: 11px;
-      font-weight: 600;
-      padding: 3px 8px;
-      border-radius: 20px;
-    }
-    .e-high   { background: var(--green-bg); color: var(--green); }
-    .e-medium { background: var(--yellow-bg); color: var(--yellow); }
-    .e-low    { background: #f1f5f9; color: var(--muted); }
+    .persona-badge { font-size:11px; font-weight:700; padding:3px 9px; border-radius:999px; }
+    .p-ministry   { background:#ede9fe; color:#6d28d9; }
+    .p-healing    { background:#dbeafe; color:#1d4ed8; }
+    .p-devotional { background:#d1fae5; color:#065f46; }
+    .p-seeker     { background:#ffedd5; color:#c2410c; }
+    .p-caregiver  { background:#fce7f3; color:#9d174d; }
+    .p-general    { background:#f1f5f9; color:#475569; }
+    .p-visitor    { background:#e0f2fe; color:#0369a1; }
 
-    .consent-badge { font-size: 11px; font-weight: 700; }
-    .c-yes { color: var(--green); }
-    .c-no  { color: var(--red); }
+    .eng-badge { font-size:11px; font-weight:600; padding:3px 8px; border-radius:999px; }
+    .e-high   { background:var(--green-bg);  color:var(--green);  }
+    .e-medium { background:var(--yellow-bg); color:var(--yellow); }
+    .e-low    { background:#f1f5f9; color:var(--muted); }
 
-    .user-mini-topics { font-size: 12px; color: var(--muted); margin-top: 6px; line-height: 1.4; }
+    .consent-badge { font-size:11px; font-weight:700; }
+    .c-yes { color:var(--green); }
+    .c-no  { color:var(--red);   }
 
-    /* ── Locked state (no admin key) ── */
+    .user-mini-topics { font-size:12px; color:var(--muted); line-height:1.4; }
+
+    .known-user { margin-bottom:10px; padding-bottom:10px; border-bottom:1px solid var(--border); }
+    .known-name { font-size:14px; font-weight:800; }
+    .known-meta { font-size:11px; color:var(--muted); margin-top:2px; word-break:break-word; }
+
+    /* ── Locked state ── */
     .locked-section {
-      padding: 24px;
-      text-align: center;
-      border-top: 1px solid var(--border);
-      background: #f8fafc;
+      padding:32px; text-align:center;
+      background:var(--surface-alt);
+      border-top:1px solid var(--border);
     }
-    .lock-icon { font-size: 22px; display: block; margin-bottom: 8px; opacity: .5; }
-    .locked-section p { color: var(--muted); font-size: 14px; }
+    .lock-icon { font-size:24px; display:block; margin-bottom:10px; opacity:.4; }
+    .locked-section p { color:var(--muted); font-size:13px; max-width:400px; margin:0 auto; }
 
-    /* ── Integration section ── */
+    /* ── Workflow cards ── */
+    .workflow-grid {
+      display: grid;
+      grid-template-columns: repeat(3,1fr);
+      gap: 14px;
+      margin-bottom: 24px;
+    }
+
+    .workflow-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--r);
+      padding: 18px;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .workflow-step {
+      width:30px; height:30px;
+      background:var(--primary-light);
+      color:var(--primary);
+      border-radius:8px;
+      display:grid; place-items:center;
+      font-size:13px; font-weight:800;
+      margin-bottom:12px;
+    }
+
+    .workflow-card h3 { font-size:14px; font-weight:700; margin-bottom:5px; }
+    .workflow-card p  { font-size:13px; color:var(--muted); }
+
+    /* ── Integration cards ── */
     .integ-box {
       background: var(--surface);
       border: 1px solid var(--border);
-      border-radius: var(--radius);
-      box-shadow: var(--shadow);
-      margin-bottom: 16px;
+      border-radius: var(--r);
+      box-shadow: var(--shadow-sm);
+      margin-bottom: 10px;
       overflow: hidden;
     }
-    .integ-toggle {
-      width: 100%;
-      text-align: left;
-      background: transparent;
-      border: 0;
-      border-radius: 0;
-      padding: 18px 22px;
-      font-size: 15px;
-      font-weight: 700;
-      color: var(--text);
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 12px;
-    }
-    .integ-toggle:hover { background: #f8fafc; }
-    .integ-toggle .badge { font-size: 12px; font-weight: 600; background: var(--primary-light); color: #065f46; padding: 3px 10px; border-radius: 20px; }
-    .integ-body { display: none; border-top: 1px solid var(--border); padding: 22px; }
-    .integ-body.open { display: block; }
-    .integ-url-row {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      background: #f8fafc;
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      padding: 10px 14px;
-      margin-bottom: 18px;
-      flex-wrap: wrap;
-    }
-    .integ-url-label { font-size: 12px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: .05em; white-space: nowrap; }
-    .integ-url-value { font-family: 'SFMono-Regular', Consolas, monospace; font-size: 13px; flex: 1; color: var(--primary); font-weight: 600; word-break: break-all; }
-    .integ-tabs { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 16px; }
-    .integ-tab {
-      padding: 6px 14px;
-      border-radius: 20px;
-      font-size: 13px;
-      font-weight: 600;
-      border: 1px solid var(--border);
-      background: #fff;
-      color: var(--muted);
-      cursor: pointer;
-    }
-    .integ-tab:hover { background: #f1f5f9; }
-    .integ-tab.active { background: var(--primary); color: #fff; border-color: var(--primary); }
-    .integ-snippet { position: relative; }
-    .integ-snippet pre {
-      max-height: 420px;
-      margin-top: 0;
-      border-radius: 8px;
-    }
-    .copy-btn {
-      position: absolute;
-      top: 10px;
-      right: 10px;
-      background: rgba(255,255,255,.12);
-      color: #e2e8f0;
-      border: 1px solid rgba(255,255,255,.2);
-      border-radius: 6px;
-      padding: 4px 12px;
-      font-size: 12px;
-      font-weight: 700;
-      cursor: pointer;
-      transition: background .15s;
-    }
-    .copy-btn:hover { background: rgba(255,255,255,.22); }
-    .integ-note { font-size: 13px; color: var(--muted); margin-top: 12px; line-height: 1.5; }
-    .integ-note code { background: #f1f5f9; padding: 1px 5px; border-radius: 4px; font-family: monospace; font-size: 12px; color: var(--primary); }
 
-    /* ── Developer tools ── */
+    .integ-toggle {
+      width:100%; text-align:left;
+      background:transparent; border:none; border-radius:0;
+      padding:16px 20px;
+      font-size:14px; font-weight:700; color:var(--text);
+      display:flex; justify-content:space-between; align-items:center; gap:12px;
+    }
+    .integ-toggle:hover { background:var(--surface-alt); }
+
+    .integ-toggle .badge {
+      font-size:11px; font-weight:600;
+      background:var(--primary-light);
+      color:var(--primary-dark);
+      padding:3px 10px; border-radius:999px;
+      white-space:nowrap;
+    }
+
+    .integ-body { display:none; border-top:1px solid var(--border); padding:20px; }
+    .integ-body.open { display:block; }
+
+    .integ-url-row {
+      display:flex; align-items:center; gap:10px; flex-wrap:wrap;
+      background:var(--surface-alt);
+      border:1px solid var(--border);
+      border-radius:var(--r-sm);
+      padding:10px 14px;
+      margin-bottom:16px;
+    }
+    .integ-url-label { font-size:11px; font-weight:700; color:var(--muted); text-transform:uppercase; letter-spacing:.05em; white-space:nowrap; }
+    .integ-url-value { font-family:var(--mono); font-size:13px; flex:1; color:var(--primary); font-weight:600; word-break:break-all; }
+
+    .feature-grid {
+      display:grid;
+      grid-template-columns:repeat(auto-fill,minmax(190px,1fr));
+      gap:8px;
+      margin-bottom:18px;
+    }
+    .feature-chip {
+      background:var(--green-bg);
+      border:1px solid var(--green-border);
+      border-radius:var(--r-sm);
+      padding:10px 12px;
+    }
+    .feature-chip strong { color:var(--green); display:block; font-size:13px; margin-bottom:2px; }
+    .feature-chip span  { color:var(--muted); font-size:12px; }
+    .feature-chip code  { font-size:11px; }
+
+    .source-select-row {
+      display:flex; align-items:center; gap:10px; flex-wrap:wrap;
+      margin-bottom:14px;
+    }
+    .source-select-row label { font-size:13px; font-weight:700; color:var(--muted); white-space:nowrap; }
+    .source-select-row select { flex:1; min-width:180px; }
+
+    .integ-snippet { position:relative; }
+    .integ-snippet pre { max-height:400px; margin:0; }
+
+    .copy-btn {
+      position:absolute; top:10px; right:10px;
+      background:rgba(255,255,255,.12);
+      color:#cbd5e1;
+      border:1px solid rgba(255,255,255,.18);
+      border-radius:var(--r-sm);
+      padding:4px 12px;
+      font-size:12px; font-weight:700;
+      cursor:pointer;
+      transition:background .15s;
+    }
+    .copy-btn:hover { background:rgba(255,255,255,.22); }
+
+    .integ-note { font-size:13px; color:var(--muted); margin-top:12px; line-height:1.55; }
+    .integ-note code {
+      background:var(--surface-alt);
+      border:1px solid var(--border);
+      padding:1px 5px; border-radius:4px;
+      font-family:var(--mono); font-size:11px;
+      color:var(--primary);
+    }
+
+    /* ── Developer Tools ── */
     .dev-tools {
       background: var(--surface);
       border: 1px solid var(--border);
-      border-radius: var(--radius);
-      margin-top: 32px;
+      border-radius: var(--r-lg);
+      margin-top: 36px;
       box-shadow: var(--shadow);
+      overflow: hidden;
     }
+
     .dev-toggle {
-      width: 100%;
-      text-align: left;
-      background: transparent;
-      border: 0;
-      border-radius: 0;
-      padding: 16px 22px;
-      font-size: 15px;
-      font-weight: 700;
-      color: var(--text);
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
+      width:100%; text-align:left;
+      background:transparent; border:none; border-radius:0;
+      padding:18px 22px;
+      font-size:15px; font-weight:700; color:var(--text);
+      display:flex; justify-content:space-between; align-items:center; gap:12px;
     }
-    .dev-toggle:hover { background: #f8fafc; border-radius: var(--radius); }
-    .dev-body { display: none; border-top: 1px solid var(--border); padding: 22px; }
-    .dev-body.open { display: block; }
-    .dev-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
-    .dev-col h3 { font-size: 13px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: .05em; margin-bottom: 14px; }
-    .field { margin-bottom: 12px; }
-    .field label { display: block; font-size: 12px; font-weight: 700; color: var(--muted); margin-bottom: 5px; text-transform: uppercase; letter-spacing: .04em; }
-    .field input, .field select {
-      width: 100%;
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      padding: 8px 12px;
-      font: inherit;
-      font-size: 14px;
-      background: #fff;
+    .dev-toggle:hover { background:var(--surface-alt); }
+
+    .dev-toggle-label { display:flex; align-items:center; gap:10px; }
+
+    .dev-badge {
+      font-size:11px; font-weight:600;
+      background:var(--navy-mid); color:#94a3b8;
+      padding:3px 10px; border-radius:999px;
     }
-    .field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-    .actions-row { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 6px; }
+
+    .dev-body { display:none; border-top:1px solid var(--border); }
+    .dev-body.open { display:block; }
+
+    .dev-grid { display:grid; grid-template-columns:1fr 1fr; }
+
+    .dev-col { padding:22px; }
+    .dev-col:first-child { border-right:1px solid var(--border); }
+
+    .dev-col-header {
+      font-size:11px; font-weight:700;
+      text-transform:uppercase; letter-spacing:.07em;
+      color:var(--muted);
+      margin-bottom:16px;
+      display:flex; align-items:center; gap:8px;
+    }
+    .dev-col-header::after { content:''; flex:1; height:1px; background:var(--border); }
+
+    .field { margin-bottom:14px; }
+    .field label {
+      display:block;
+      font-size:11px; font-weight:700;
+      text-transform:uppercase; letter-spacing:.05em;
+      color:var(--muted); margin-bottom:6px;
+    }
+    .field input, .field select { width:100%; }
+
+    .field-row { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+    .actions-row { display:flex; gap:7px; flex-wrap:wrap; margin-top:14px; }
+
+    /* ── Code / terminal ── */
     pre {
-      background: #0f172a;
-      color: #e2e8f0;
-      padding: 14px;
-      border-radius: 8px;
+      background: #0d1117;
+      color: #c9d1d9;
+      padding: 16px;
+      border-radius: var(--r-sm);
       font-size: 12px;
       overflow: auto;
       max-height: 320px;
       white-space: pre-wrap;
       word-break: break-word;
-      margin-top: 14px;
-      font-family: 'SFMono-Regular', Consolas, monospace;
+      font-family: var(--mono);
+      line-height: 1.6;
     }
+    #devOutput { margin-top:14px; min-height:80px; color:#7ee787; }
 
     /* ── Misc ── */
-    .loading { color: var(--muted); font-size: 14px; padding: 24px; text-align: center; }
-    .divider { height: 1px; background: var(--border); margin: 8px 0; }
+    .loading { color:var(--muted); font-size:14px; padding:32px; text-align:center; }
 
     /* ── Responsive ── */
-    @media (max-width: 760px) {
-      .stats-grid { grid-template-columns: repeat(2, 1fr); }
-      .dev-grid { grid-template-columns: 1fr; }
-      .app-users-grid { grid-template-columns: 1fr; }
-      .app-last { align-items: flex-start; margin-top: 8px; }
-      .steps-grid { grid-template-columns: 1fr !important; }
+    @media (max-width:900px) {
+      .stats-grid    { grid-template-columns:repeat(2,1fr); }
+      .workflow-grid { grid-template-columns:repeat(2,1fr); }
+      .dev-grid      { grid-template-columns:1fr; }
+      .dev-col:first-child { border-right:none; border-bottom:1px solid var(--border); }
     }
-    @media (max-width: 480px) {
-      .stats-grid { grid-template-columns: 1fr; }
-      .header-inner { gap: 10px; }
-    }
-
-    /* Modern dashboard refresh */
-    :root {
-      --bg: #f6f8fb;
-      --surface: #ffffff;
-      --surface-soft: #f8fafc;
-      --border: #d9e2ec;
-      --border-strong: #cbd5e1;
-      --primary: #0f766e;
-      --primary-hover: #115e59;
-      --primary-light: #d9fbf3;
-      --text: #102033;
-      --muted: #65758b;
-      --green: #15803d;
-      --green-bg: #ecfdf3;
-      --green-border: #bbf7d0;
-      --yellow: #a16207;
-      --yellow-bg: #fef9c3;
-      --red: #b91c1c;
-      --red-bg: #fef2f2;
-      --navy: #172033;
-      --radius: 8px;
-      --shadow: 0 1px 2px rgba(15, 23, 42, .05), 0 10px 28px rgba(15, 23, 42, .07);
-    }
-
-    body {
-      background:
-        linear-gradient(180deg, #eef6f5 0, #f6f8fb 240px),
-        var(--bg);
-      color: var(--text);
-    }
-
-    header {
-      background: #101827;
-      border-bottom: 1px solid rgba(255,255,255,.08);
-      box-shadow: none;
-    }
-
-    .header-inner {
-      max-width: 1240px;
-      min-height: 76px;
-      padding: 16px 0;
-    }
-
-    .brand h1 {
-      font-size: 20px;
-      letter-spacing: 0;
-    }
-
-    .brand p {
-      color: #b8c4d2;
-      opacity: 1;
-    }
-
-    .page {
-      max-width: 1240px;
-      padding: 24px 24px 72px;
-    }
-
-    .admin-banner,
-    .stat-card,
-    .app-card,
-    .integ-box,
-    .dev-tools {
-      border-color: var(--border);
-      border-radius: var(--radius);
-      box-shadow: var(--shadow);
-    }
-
-    .admin-banner {
-      align-items: end;
-      gap: 10px;
-      padding: 16px;
-      margin-top: 24px !important;
-    }
-
-    .admin-banner .banner-label,
-    .field label,
-    .integ-url-label {
-      letter-spacing: 0;
-      text-transform: none;
-    }
-
-    .banner-field {
-      flex: 1 1 260px;
-      min-width: 220px;
-    }
-
-    .banner-field label {
-      display: block;
-      margin-bottom: 6px;
-      color: var(--muted);
-      font-size: 12px;
-      font-weight: 700;
-    }
-
-    .banner-field input {
-      width: 100%;
-      min-width: 0;
-    }
-
-    button {
-      border-radius: 8px;
-      transition: background .15s, border-color .15s, transform .15s;
-    }
-
-    button:hover { transform: translateY(-1px); }
-
-    .btn-primary {
-      background: var(--primary);
-      box-shadow: 0 8px 18px rgba(15, 118, 110, .18);
-    }
-
-    .btn-secondary { background: #253248; }
-    .btn-ghost {
-      background: #eef3f7;
-      border: 1px solid #d8e2ea;
-    }
-
-    .stats-grid {
-      grid-template-columns: repeat(4, minmax(0, 1fr));
-      gap: 16px;
-    }
-
-    .stat-card {
-      min-height: 124px;
-      padding: 18px;
-      position: relative;
-      overflow: hidden;
-    }
-
-    .stat-card::after {
-      content: "";
-      position: absolute;
-      inset: auto 16px 16px auto;
-      width: 34px;
-      height: 4px;
-      border-radius: 99px;
-      background: var(--primary);
-      opacity: .22;
-    }
-
-    .stat-label {
-      font-size: 12px;
-      letter-spacing: 0;
-      text-transform: none;
-    }
-
-    .stat-value {
-      font-size: 34px;
-      letter-spacing: 0;
-    }
-
-    .section-hdr {
-      align-items: end;
-      margin: 30px 0 14px;
-    }
-
-    .section-hdr h2 {
-      font-size: 20px;
-      letter-spacing: 0;
-    }
-
-    .app-card-top { padding: 18px; }
-    .app-icon {
-      display: grid;
-      width: 42px;
-      height: 42px;
-      place-items: center;
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      background: var(--surface-soft);
-      color: var(--primary);
-      font-size: 0;
-      font-weight: 800;
-    }
-
-    .app-icon::after {
-      content: "";
-      width: 17px;
-      height: 17px;
-      border: 2px solid var(--primary);
-      border-radius: 5px;
-      box-shadow: 7px 7px 0 -3px #94a3b8;
-    }
-
-    .app-name { font-size: 17px; }
-    .app-key { font-size: 12px; }
-
-    .app-users-hdr,
-    .app-users-grid,
-    .app-users-empty {
-      background: var(--surface-soft);
-    }
-
-    .user-mini {
-      border-radius: 8px;
-      background: #fff;
-    }
-
-    .integ-toggle,
-    .dev-toggle {
-      padding: 16px 18px;
-    }
-
-    .integ-toggle .badge,
-    .topic-pill,
-    .chip {
-      border-radius: 999px;
-    }
-
-    .workflow-grid,
-    .feature-grid {
-      display: grid;
-      gap: 12px;
-    }
-
-    .workflow-grid {
-      grid-template-columns: repeat(3, minmax(0, 1fr));
-      margin-bottom: 20px;
-    }
-
-    .workflow-card,
-    .feature-card {
-      background: #fff;
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      padding: 14px 16px;
-      box-shadow: var(--shadow);
-    }
-
-    .workflow-step {
-      display: inline-grid;
-      width: 28px;
-      height: 28px;
-      place-items: center;
-      border-radius: 8px;
-      background: var(--primary-light);
-      color: var(--primary);
-      font-size: 13px;
-      font-weight: 800;
-      margin-bottom: 10px;
-    }
-
-    .workflow-card > div:first-child {
-      display: inline-grid !important;
-      width: 28px;
-      height: 28px;
-      place-items: center;
-      border-radius: 8px;
-      background: var(--primary-light);
-      color: transparent;
-      font-size: 0 !important;
-      margin-bottom: 10px !important;
-    }
-
-    .workflow-card > div:first-child::after {
-      color: var(--primary);
-      font-size: 13px;
-      font-weight: 800;
-    }
-
-    .workflow-card:nth-child(1) > div:first-child::after { content: "1"; }
-    .workflow-card:nth-child(2) > div:first-child::after { content: "2"; }
-    .workflow-card:nth-child(3) > div:first-child::after { content: "3"; }
-
-    .workflow-card h3,
-    .feature-card h3 {
-      font-size: 14px;
-      margin-bottom: 4px;
-    }
-
-    .workflow-card p,
-    .feature-card p {
-      color: var(--muted);
-      font-size: 13px;
-    }
-
-    .feature-grid {
-      grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
-      margin-bottom: 18px;
-    }
-
-    pre {
-      border-radius: 8px;
-      background: #111827;
-      color: #dbeafe;
-    }
-
-    @media (max-width: 900px) {
-      .stats-grid,
-      .workflow-grid {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-      }
-    }
-
-    @media (max-width: 620px) {
-      .page { padding: 16px 14px 56px; }
-      .stats-grid,
-      .workflow-grid {
-        grid-template-columns: 1fr;
-      }
-      .section-hdr {
-        display: block;
-      }
-      .admin-banner {
-        align-items: stretch;
-      }
-      .admin-banner button {
-        width: 100%;
-      }
+    @media (max-width:600px) {
+      .stats-grid    { grid-template-columns:1fr; }
+      .workflow-grid { grid-template-columns:1fr; }
+      .app-users-grid { grid-template-columns:1fr; }
+      .field-row     { grid-template-columns:1fr; }
+      .page          { padding:16px 14px 60px; }
+      .header-inner  { height:auto; padding:14px 16px; flex-wrap:wrap; gap:12px; }
+      .header-status { display:none; }
     }
   </style>
 </head>
 <body>
 
-  <!-- ── Header ── -->
   <header>
     <div class="header-inner">
       <div class="brand">
-        <h1>Faith Content Engine</h1>
-        <p>Consent-first interest profiling for faith platforms</p>
+        <div class="brand-logo">
+          <svg viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+        </div>
+        <div class="brand-text">
+          <h1>Faith Content Engine</h1>
+          <p>Consent-first interest profiling for faith platforms</p>
+        </div>
       </div>
-      <div class="header-chips">
-        <a class="top-link" href="/getting-started.html">Beginner Guide</a>
-        <span class="chip chip-white" id="apiChip"><span class="dot dot-gray"></span> API checking</span>
+      <div class="header-status">
+        <span class="chip chip-gray" id="apiChip"><span class="dot dot-gray"></span> API checking</span>
         <span class="chip chip-white" id="aiChip">AI unknown</span>
         <span class="chip chip-white" id="retentionChip">Retention unknown</span>
       </div>
+      <a class="nav-link" href="/getting-started.html">Beginner Guide</a>
     </div>
   </header>
 
   <div class="page">
 
-    <!-- ── Admin key banner ── -->
-    <div class="admin-banner" id="adminBanner" style="margin-top:20px">
+    <!-- Admin banner -->
+    <div class="admin-banner" id="adminBanner">
       <div class="banner-field">
         <label for="apiBaseInput">API Endpoint</label>
         <input id="apiBaseInput" placeholder="https://your-render-service.onrender.com" />
       </div>
-      <button class="btn-ghost btn-sm" onclick="saveApiBase()">Save API</button>
+      <button class="btn-ghost btn-sm" onclick="saveApiBase()">Save</button>
       <div class="banner-field">
         <label for="adminKeyInput">Admin Key</label>
         <input type="password" id="adminKeyInput" placeholder="Enter ADMIN_API_KEY to unlock stats" />
@@ -828,117 +630,100 @@
       <span class="banner-status" id="bannerStatus" style="display:none">&#10003; Stats loaded</span>
     </div>
 
-    <!-- ── Overview stats ── -->
+    <!-- Stats -->
     <div class="stats-grid">
       <div class="stat-card">
         <div class="stat-label">Connected Apps</div>
-        <div class="stat-value" id="statApps">-</div>
+        <div class="stat-value" id="statApps">&#8212;</div>
         <div class="stat-sub">Approved sources</div>
       </div>
       <div class="stat-card">
         <div class="stat-label">Total Users</div>
-        <div class="stat-value" id="statUsers">-</div>
+        <div class="stat-value" id="statUsers">&#8212;</div>
         <div class="stat-sub">Anonymous profiles</div>
       </div>
       <div class="stat-card">
         <div class="stat-label">Total Events</div>
-        <div class="stat-value" id="statEvents">-</div>
+        <div class="stat-value" id="statEvents">&#8212;</div>
         <div class="stat-sub">Interest signals tracked</div>
       </div>
       <div class="stat-card">
         <div class="stat-label">Data Retention</div>
-        <div class="stat-value" id="statRetention">-</div>
+        <div class="stat-value" id="statRetention">&#8212;</div>
         <div class="stat-sub">Days data is kept</div>
       </div>
     </div>
 
-    <!-- ── Connected apps section ── -->
+    <!-- Connected apps -->
     <div class="section-hdr">
       <h2>Connected Apps &amp; Platforms</h2>
-      <p>Platforms sending interest signals to this engine</p>
+      <span class="section-sub">Platforms sending interest signals to this engine</span>
     </div>
     <div id="appsContainer">
       <div class="loading">Loading connected apps&hellip;</div>
     </div>
 
-    <!-- ── Integration section ── -->
-    <div class="section-hdr" style="margin-top:36px">
+    <!-- Connect section -->
+    <div class="section-hdr" style="margin-top:40px">
       <h2>Connect Your App or Website</h2>
-      <p>3 steps &mdash; pick your platform and copy the code</p>
+      <span class="section-sub">3 steps &mdash; pick your platform and copy the code</span>
     </div>
 
-    <!-- How it works row -->
     <div class="workflow-grid">
       <div class="workflow-card">
-        <div style="font-size:22px;margin-bottom:6px">1️⃣</div>
+        <div class="workflow-step">1</div>
         <h3>User is created</h3>
-        <div style="font-size:13px;color:var(--muted);margin-top:4px">An anonymous ID is generated automatically — no login or PII needed.</div>
+        <p>An anonymous ID is generated automatically &mdash; no login or PII needed.</p>
       </div>
       <div class="workflow-card">
-        <div style="font-size:22px;margin-bottom:6px">2️⃣</div>
+        <div class="workflow-step">2</div>
         <h3>Consent is recorded</h3>
-        <div style="font-size:13px;color:var(--muted);margin-top:4px">Page views, searches, and time on page are captured automatically. No setup needed.</div>
+        <p>The visitor approves personalization via a consent banner before any tracking starts.</p>
       </div>
       <div class="workflow-card">
-        <div style="font-size:22px;margin-bottom:6px">3️⃣</div>
-        <h3>Profiles update</h3>
-        <div style="font-size:13px;color:var(--muted);margin-top:4px">Page views, searches, and time spent are sent here and turned into profiles.</div>
+        <div class="workflow-step">3</div>
+        <h3>Profile builds</h3>
+        <p>Page views, searches, and time on page are turned into faith-topic profiles automatically.</p>
       </div>
     </div>
 
-    <!-- Website embed card (open by default) -->
+    <!-- Website embed -->
     <div class="integ-box">
       <button class="integ-toggle" onclick="toggleInteg('website')">
-        <span>🌐 &nbsp;Website &mdash; Drop-in Embed Script <em style="font-size:12px;font-weight:400;opacity:.6">(recommended — easiest)</em></span>
+        <span>🌐 &nbsp;Website &mdash; Drop-in Embed Script <em style="font-size:12px;font-weight:400;opacity:.5">(recommended &mdash; easiest)</em></span>
         <span class="badge">1 line of code</span>
       </button>
       <div class="integ-body open" id="integ-website">
-        <!-- Auto-tracking feature list -->
-        <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:8px;margin-bottom:18px">
-          <div style="background:var(--green-bg);border:1px solid var(--green-border);border-radius:8px;padding:10px 12px;font-size:13px">
-            <strong style="color:var(--green)">✓ Page views</strong><br><span style="color:var(--muted)">Tracks every page the user visits</span>
-          </div>
-          <div style="background:var(--green-bg);border:1px solid var(--green-border);border-radius:8px;padding:10px 12px;font-size:13px">
-            <strong style="color:var(--green)">✓ Search queries</strong><br><span style="color:var(--muted)">Reads <code style="font-size:11px">?q=</code>, <code style="font-size:11px">?search=</code>, form submissions</span>
-          </div>
-          <div style="background:var(--green-bg);border:1px solid var(--green-border);border-radius:8px;padding:10px 12px;font-size:13px">
-            <strong style="color:var(--green)">✓ Time on page</strong><br><span style="color:var(--muted)">Sent on tab close or navigation</span>
-          </div>
-          <div style="background:var(--green-bg);border:1px solid var(--green-border);border-radius:8px;padding:10px 12px;font-size:13px">
-            <strong style="color:var(--green)">✓ Topic from URL</strong><br><span style="color:var(--muted)">Infers faith topic from page path</span>
-          </div>
-          <div style="background:var(--green-bg);border:1px solid var(--green-border);border-radius:8px;padding:10px 12px;font-size:13px">
-            <strong style="color:var(--green)">✓ SPA navigation</strong><br><span style="color:var(--muted)">Works with React, Next.js, Vue</span>
-          </div>
-          <div style="background:var(--green-bg);border:1px solid var(--green-border);border-radius:8px;padding:10px 12px;font-size:13px">
-            <strong style="color:var(--green)">✓ Consent banner</strong><br><span style="color:var(--muted)">Creates a user only after consent</span>
-          </div>
+        <div class="feature-grid">
+          <div class="feature-chip"><strong>✓ Page views</strong><span>Tracks every page the user visits</span></div>
+          <div class="feature-chip"><strong>✓ Search queries</strong><span>Reads <code>?q=</code>, <code>?search=</code>, form submissions</span></div>
+          <div class="feature-chip"><strong>✓ Time on page</strong><span>Sent on tab close or navigation</span></div>
+          <div class="feature-chip"><strong>✓ Topic from URL</strong><span>Infers faith topic from page path</span></div>
+          <div class="feature-chip"><strong>✓ SPA navigation</strong><span>Works with React, Next.js, Vue</span></div>
+          <div class="feature-chip"><strong>✓ Consent banner</strong><span>Creates a user only after consent</span></div>
         </div>
-
         <div class="integ-url-row">
           <span class="integ-url-label">Your engine URL</span>
-          <span class="integ-url-value" id="serverUrlDisplay">detecting…</span>
+          <span class="integ-url-value" id="serverUrlDisplay">detecting&hellip;</span>
           <button class="btn-ghost btn-sm" onclick="copyServerUrl()">Copy</button>
         </div>
-
-        <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px;flex-wrap:wrap">
-          <label style="font-size:13px;font-weight:700;color:var(--muted);white-space:nowrap">Which app is this website?</label>
-          <select id="embedSource" style="border:1px solid var(--border);border-radius:8px;padding:8px 12px;font:inherit;font-size:14px;background:#fff;flex:1;min-width:180px" onchange="handleSourceChange()"></select>
+        <div class="source-select-row">
+          <label>Which app is this website?</label>
+          <select id="embedSource" onchange="handleSourceChange()"></select>
         </div>
-        <p class="integ-note" id="selectedSourceText" style="margin-top:-8px;margin-bottom:14px"></p>
-
+        <p class="integ-note" id="selectedSourceText" style="margin-top:-6px;margin-bottom:14px"></p>
         <div class="integ-snippet">
           <pre id="snippet-website"></pre>
           <button class="copy-btn" onclick="copySnippet('website')">Copy</button>
         </div>
         <p class="integ-note">
-          Paste inside <code>&lt;head&gt;</code> or before <code>&lt;/body&gt;</code> — tracking starts after the visitor accepts the consent banner.
+          Paste inside <code>&lt;head&gt;</code> or before <code>&lt;/body&gt;</code> &mdash; tracking starts after the visitor accepts the consent banner.
           To add extra events manually call <code>FaithEngine.track(eventType, topic, options)</code> anywhere on the page.
         </p>
       </div>
     </div>
 
-    <!-- Vanilla JS card -->
+    <!-- Vanilla JS -->
     <div class="integ-box">
       <button class="integ-toggle" onclick="toggleInteg('js')">
         <span>⚡ JavaScript / Vanilla JS</span>
@@ -953,7 +738,7 @@
       </div>
     </div>
 
-    <!-- React card -->
+    <!-- React -->
     <div class="integ-box">
       <button class="integ-toggle" onclick="toggleInteg('react')">
         <span>⚛️ React</span>
@@ -968,7 +753,7 @@
       </div>
     </div>
 
-    <!-- React Native card -->
+    <!-- React Native -->
     <div class="integ-box">
       <button class="integ-toggle" onclick="toggleInteg('rn')">
         <span>📱 React Native / Expo</span>
@@ -983,7 +768,7 @@
       </div>
     </div>
 
-    <!-- Python card -->
+    <!-- Python -->
     <div class="integ-box">
       <button class="integ-toggle" onclick="toggleInteg('python')">
         <span>🐍 Python</span>
@@ -994,20 +779,23 @@
           <pre id="snippet-python"></pre>
           <button class="copy-btn" onclick="copySnippet('python')">Copy</button>
         </div>
-        <p class="integ-note">Install: <code>pip install requests</code>. Store <code>user_id</code> in your session or database — one ID per visitor.</p>
+        <p class="integ-note">Install: <code>pip install requests</code>. Store <code>user_id</code> in your session or database &mdash; one ID per visitor.</p>
       </div>
     </div>
 
-    <!-- ── Developer tools ── -->
+    <!-- Developer Tools -->
     <div class="dev-tools">
       <button class="dev-toggle" onclick="toggleDev()">
-        Developer Tools
+        <div class="dev-toggle-label">
+          Developer Tools
+          <span class="dev-badge">Admin only</span>
+        </div>
         <span id="devArrow">&#9660;</span>
       </button>
       <div class="dev-body" id="devBody">
         <div class="dev-grid">
           <div class="dev-col">
-            <h3>User &amp; Event Tracking</h3>
+            <div class="dev-col-header">User &amp; Event Tracking</div>
             <div class="field">
               <label>Anonymous User ID</label>
               <input id="devUserId" placeholder="anon_..." />
@@ -1032,9 +820,6 @@
                 <input id="devSeconds" type="number" value="180" min="0" />
               </div>
             </div>
-            <div class="field">
-              <label>Consent Scopes (all selected by default)</label>
-            </div>
             <div class="actions-row">
               <button class="btn-primary btn-sm" onclick="devCreateUser()">Create User</button>
               <button class="btn-ghost btn-sm" onclick="devAcceptConsent()">Accept Consent</button>
@@ -1044,8 +829,26 @@
             </div>
           </div>
           <div class="dev-col">
-            <h3>Admin Tools</h3>
+            <div class="dev-col-header">Admin Tools</div>
+            <div class="field-row">
+              <div class="field">
+                <label>Known Name</label>
+                <input id="knownDisplayName" placeholder="e.g. Ada Example" />
+              </div>
+              <div class="field">
+                <label>Known Email</label>
+                <input id="knownEmail" placeholder="name@example.com" />
+              </div>
+            </div>
+            <div class="field">
+              <label>External User ID</label>
+              <input id="knownExternalId" placeholder="CRM, app, or member ID" />
+            </div>
             <div class="actions-row">
+              <button class="btn-primary btn-sm" onclick="devLinkKnownUser()">Link Known User</button>
+              <button class="btn-ghost btn-sm" onclick="devUnlinkKnownUser()">Unlink Known User</button>
+            </div>
+            <div class="actions-row" style="margin-top:8px">
               <button class="btn-secondary btn-sm" onclick="devAdminEvents()">View Events Log</button>
               <button class="btn-secondary btn-sm" onclick="devConsentHistory()">Consent Log</button>
               <button class="btn-warning btn-sm" onclick="devRunRetention()">Run Retention</button>
@@ -1056,7 +859,7 @@
       </div>
     </div>
 
-  </div><!-- /page -->
+  </div>
 
   <script src="/config.js"></script>
   <script>
@@ -1179,8 +982,20 @@
       const persona = u.persona || 'General Believer';
       const topicsText = (u.topTopics || []).slice(0, 3).map(fmt).map(esc).join(' &middot; ') || 'No topics yet';
       const engLabel = u.engagementLevel && u.engagementLevel !== 'none' ? u.engagementLevel : null;
+      const known = u.knownUser || null;
+      const knownTitle = known
+        ? (known.displayName || known.email || known.externalUserId || 'Known user')
+        : null;
+      const knownMeta = known
+        ? [known.email, known.externalUserId].filter(Boolean).map(esc).join(' &middot; ')
+        : '';
       return `
         <div class="user-mini">
+          ${known ? `
+            <div class="known-user">
+              <div class="known-name">${esc(knownTitle)}</div>
+              <div class="known-meta">${knownMeta || 'Linked known profile'}</div>
+            </div>` : ''}
           <div class="user-mini-id">${esc(u.anonymousUserId)}</div>
           <div class="user-mini-badges">
             <span class="persona-badge ${personaClass(persona)}">${esc(persona)}</span>
@@ -1202,9 +1017,6 @@
 
       if (stats) {
         const active = stats.eventCount > 0;
-        const statusChip = active
-          ? `<span class="chip chip-green"><span class="dot dot-green"></span> Active</span>`
-          : `<span class="chip chip-gray"><span class="dot dot-gray"></span> No activity</span>`;
 
         const topicsHtml = stats.topTopics.length
           ? stats.topTopics.map(t => `<span class="topic-pill">${esc(fmt(t.topic))}</span>`).join('')
@@ -1221,7 +1033,6 @@
           </div>
           <div class="app-topics">${topicsHtml}</div>`;
 
-        // Filter users by this source
         const srcUsers = allUsers.filter(u => (u.sourceCounts && u.sourceCounts[source] > 0) || (u.topSources || []).includes(source));
         const MAX = 3;
         const shown = isExpanded ? srcUsers : srcUsers.slice(0, MAX);
@@ -1338,7 +1149,6 @@
         S.config = cfg;
         $('statApps').textContent = cfg.approvedEventSources.length;
 
-        // Populate dev selects
         $('devEventType').innerHTML = cfg.allowedEventTypes
           .map(t => `<option value="${attr(t)}">${esc(fmt(t))}</option>`).join('');
         $('devEventType').value = 'video_watched';
@@ -1437,6 +1247,34 @@
       } catch (err) { devShow(err); }
     }
 
+    async function devLinkKnownUser() {
+      try {
+        const data = await api('/api/admin/users/' + devUid() + '/known-user', {
+          method: 'POST',
+          headers: adminHeaders(),
+          body: JSON.stringify({
+            displayName: $('knownDisplayName').value,
+            email: $('knownEmail').value,
+            externalUserId: $('knownExternalId').value,
+            source: 'dashboard_admin'
+          })
+        });
+        devShow(data);
+        if (S.sources) loadStats();
+      } catch (err) { devShow(err); }
+    }
+
+    async function devUnlinkKnownUser() {
+      try {
+        const data = await api('/api/admin/users/' + devUid() + '/known-user', {
+          method: 'DELETE',
+          headers: adminHeaders()
+        });
+        devShow(data);
+        if (S.sources) loadStats();
+      } catch (err) { devShow(err); }
+    }
+
     async function devAdminEvents() {
       try { devShow(await api('/api/admin/events', { headers: adminHeaders() })); }
       catch (err) { devShow(err); }
@@ -1454,8 +1292,6 @@
     }
 
     // ─── Integration section ──────────────────────────────────────────────────
-    const OPEN_INTEG = new Set();
-
     function toggleInteg(id) {
       const body = $('integ-' + id);
       if (!body) return;

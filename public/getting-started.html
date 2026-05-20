@@ -6,278 +6,564 @@
   <title>Beginner Guide | Faith Content Engine</title>
   <style>
     :root {
-      --bg: #f6f8fb;
+      --bg: #f0f4f8;
       --surface: #ffffff;
-      --border: #d9e2ec;
-      --text: #102033;
-      --muted: #65758b;
-      --primary: #0f766e;
-      --soft: #eef6f5;
-      --code: #111827;
-      --radius: 8px;
-      --shadow: 0 1px 2px rgba(15,23,42,.05), 0 10px 28px rgba(15,23,42,.07);
+      --surface-alt: #f8fafc;
+      --border: #e1e8f0;
+      --primary: #0d9488;
+      --primary-dark: #0f766e;
+      --primary-light: #ccfbf1;
+      --text: #0d1b2a;
+      --text-sec: #4a5568;
+      --muted: #6b7a8d;
+      --green: #059669;
+      --green-bg: #ecfdf5;
+      --green-border: #a7f3d0;
+      --yellow: #d97706;
+      --yellow-bg: #fffbeb;
+      --red: #dc2626;
+      --red-bg: #fef2f2;
+      --navy: #0a0f1e;
+      --r: 10px;
+      --r-sm: 6px;
+      --shadow: 0 4px 6px -1px rgba(0,0,0,.07),0 2px 4px -1px rgba(0,0,0,.04);
+      --shadow-sm: 0 1px 3px rgba(0,0,0,.06),0 1px 2px rgba(0,0,0,.04);
+      --font: system-ui,-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
+      --mono: 'SFMono-Regular',Consolas,'Liberation Mono',monospace;
     }
 
-    * { box-sizing: border-box; }
+    *,*::before,*::after { box-sizing:border-box; margin:0; padding:0; }
 
     body {
-      margin: 0;
-      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      font-family: var(--font);
+      background: var(--bg);
       color: var(--text);
-      background: linear-gradient(180deg, #eef6f5 0, var(--bg) 260px);
+      font-size: 15px;
       line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
     }
 
+    /* ── Header ── */
     header {
-      background: #101827;
-      color: #fff;
-      padding: 24px;
+      background: var(--navy);
+      border-bottom: 1px solid rgba(255,255,255,.06);
     }
 
-    .wrap {
-      max-width: 980px;
+    .header-inner {
+      max-width: 1100px;
       margin: 0 auto;
-    }
-
-    .top {
+      padding: 0 24px;
+      height: 68px;
       display: flex;
-      justify-content: space-between;
       align-items: center;
+      justify-content: space-between;
       gap: 16px;
-      flex-wrap: wrap;
     }
 
-    h1 {
-      margin: 0;
+    .brand { display:flex; align-items:center; gap:12px; }
+
+    .brand-logo {
+      width: 34px; height: 34px;
+      background: linear-gradient(135deg, var(--primary), #0a6b65);
+      border-radius: 8px;
+      display: grid; place-items: center;
+      flex-shrink: 0;
+    }
+    .brand-logo svg {
+      width: 16px; height: 16px;
+      fill: none; stroke: #fff;
+      stroke-width: 2; stroke-linecap: round; stroke-linejoin: round;
+    }
+
+    .brand-text h1 { font-size:16px; font-weight:700; color:#fff; }
+    .brand-text p  { font-size:12px; color:#8496b0; margin-top:1px; }
+
+    .back-link {
+      color: #a0b0c8;
+      text-decoration: none;
+      font-size: 13px;
+      font-weight: 600;
+      padding: 6px 14px;
+      border-radius: 999px;
+      border: 1px solid rgba(255,255,255,.1);
+      white-space: nowrap;
+      transition: all .15s;
+    }
+    .back-link:hover { color:#fff; background:rgba(255,255,255,.08); }
+
+    /* ── Layout ── */
+    .page {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 36px 24px 80px;
+      display: grid;
+      grid-template-columns: 220px 1fr;
+      gap: 32px;
+      align-items: start;
+    }
+
+    /* ── Sidebar nav ── */
+    .sidebar {
+      position: sticky;
+      top: 24px;
+    }
+
+    .sidebar-label {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: .07em;
+      color: var(--muted);
+      margin-bottom: 10px;
+    }
+
+    .sidebar-nav { list-style: none; }
+    .sidebar-nav li { margin-bottom: 2px; }
+    .sidebar-nav a {
+      display: block;
+      padding: 7px 12px;
+      border-radius: var(--r-sm);
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-sec);
+      text-decoration: none;
+      transition: all .15s;
+    }
+    .sidebar-nav a:hover { background:var(--surface); color:var(--primary); }
+
+    /* ── Content ── */
+    .content { min-width: 0; }
+
+    .page-title {
       font-size: 28px;
-      letter-spacing: 0;
+      font-weight: 800;
+      letter-spacing: -.02em;
+      color: var(--text);
+      margin-bottom: 6px;
+    }
+    .page-sub { font-size: 15px; color: var(--muted); margin-bottom: 28px; }
+
+    /* ── Cards ── */
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--r);
+      padding: 24px;
+      box-shadow: var(--shadow-sm);
+      margin-bottom: 16px;
     }
 
-    header p {
-      margin: 6px 0 0;
-      color: #b8c4d2;
+    .card-callout {
+      background: var(--primary-light);
+      border-color: #99f6e4;
     }
 
-    a {
+    .card-warn {
+      background: var(--yellow-bg);
+      border-color: #fde68a;
+    }
+
+    .card h2 {
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--text);
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .card h2 .icon {
+      width: 32px; height: 32px;
+      background: var(--primary-light);
+      border-radius: 8px;
+      display: grid; place-items: center;
+      font-size: 16px;
+      flex-shrink: 0;
+    }
+
+    .card-callout h2 .icon { background: rgba(255,255,255,.6); }
+
+    .card h3 {
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--text);
+      margin: 20px 0 8px;
+    }
+    .card h3:first-child { margin-top: 0; }
+
+    p { margin-bottom: 12px; }
+    p:last-child { margin-bottom: 0; }
+
+    a { color:var(--primary); font-weight:700; text-decoration:none; }
+    a:hover { text-decoration:underline; }
+
+    /* ── Three-col grid ── */
+    .three-grid {
+      display: grid;
+      grid-template-columns: repeat(3,1fr);
+      gap: 12px;
+      margin-top: 14px;
+    }
+
+    .mini-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--r-sm);
+      padding: 14px;
+    }
+    .card-callout .mini-card { background:rgba(255,255,255,.7); }
+
+    .mini-card strong { display:block; font-size:14px; font-weight:700; margin-bottom:4px; }
+    .mini-card span   { font-size:13px; color:var(--muted); }
+
+    /* ── Numbered steps ── */
+    .steps { list-style:none; }
+    .steps li {
+      display: flex;
+      gap: 14px;
+      align-items: flex-start;
+      padding: 10px 0;
+      border-bottom: 1px solid var(--border);
+    }
+    .steps li:last-child { border-bottom:none; padding-bottom:0; }
+
+    .step-num {
+      width: 26px; height: 26px;
+      background: var(--primary-light);
+      color: var(--primary-dark);
+      border-radius: 7px;
+      display: grid; place-items: center;
+      font-size: 12px; font-weight: 800;
+      flex-shrink: 0;
+      margin-top: 1px;
+    }
+
+    .step-text { font-size:14px; line-height:1.55; padding-top:2px; }
+
+    /* ── Bullet lists ── */
+    ul.styled, ol.styled {
+      list-style: none;
+      margin: 0; padding: 0;
+    }
+    ul.styled li, ol.styled li {
+      position: relative;
+      padding: 6px 0 6px 22px;
+      font-size: 14px;
+      border-bottom: 1px solid var(--border);
+    }
+    ul.styled li:last-child, ol.styled li:last-child { border-bottom:none; }
+    ul.styled li::before {
+      content: '•';
+      position: absolute;
+      left: 4px;
       color: var(--primary);
       font-weight: 700;
     }
 
-    .back {
-      color: #d7fff7;
-      border: 1px solid rgba(255,255,255,.18);
-      border-radius: 999px;
-      padding: 8px 13px;
-      text-decoration: none;
+    /* ── Glossary definitions ── */
+    .def-list { margin:0; }
+    .def-item {
+      display: flex;
+      gap: 12px;
+      align-items: flex-start;
+      padding: 10px 0;
+      border-bottom: 1px solid var(--border);
+    }
+    .def-item:last-child { border-bottom:none; }
+    .def-term {
+      font-size: 13px; font-weight: 700;
+      color: var(--primary-dark);
       white-space: nowrap;
+      min-width: 80px;
     }
+    .def-desc { font-size:14px; color:var(--text-sec); }
 
-    main {
-      padding: 28px 24px 72px;
-    }
-
-    section {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      box-shadow: var(--shadow);
-      padding: 22px;
-      margin: 16px 0;
-    }
-
-    h2 {
-      margin: 0 0 10px;
-      font-size: 20px;
-    }
-
-    h3 {
-      margin: 18px 0 8px;
-      font-size: 16px;
-    }
-
-    p { margin: 0 0 12px; }
-
-    ul, ol {
-      margin: 10px 0 0;
-      padding-left: 22px;
-    }
-
-    li { margin: 7px 0; }
-
-    code, pre {
-      font-family: "SFMono-Regular", Consolas, monospace;
-    }
-
+    /* ── Inline code / pre ── */
     code {
+      font-family: var(--mono);
+      font-size: 12px;
       background: #eef3f7;
-      border-radius: 5px;
-      padding: 2px 5px;
-      color: #0f766e;
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 1px 5px;
+      color: var(--primary-dark);
     }
 
     pre {
-      background: var(--code);
-      color: #dbeafe;
-      border-radius: 8px;
-      padding: 14px;
+      background: #0d1117;
+      color: #c9d1d9;
+      font-family: var(--mono);
+      font-size: 13px;
+      padding: 16px;
+      border-radius: var(--r-sm);
       overflow: auto;
       white-space: pre-wrap;
       word-break: break-word;
+      margin: 14px 0 0;
+      line-height: 1.6;
     }
 
-    .callout {
-      background: var(--soft);
-      border-color: #cfe4df;
+    /* ── Source pills ── */
+    .source-list { display:flex; flex-wrap:wrap; gap:7px; margin-top:10px; }
+    .source-pill {
+      background: var(--primary-light);
+      color: var(--primary-dark);
+      border-radius: 999px;
+      padding: 4px 12px;
+      font-size: 12px;
+      font-weight: 600;
+      font-family: var(--mono);
     }
 
-    .grid {
-      display: grid;
-      grid-template-columns: repeat(3, minmax(0, 1fr));
-      gap: 12px;
+    /* ── Problem/solution pairs ── */
+    .problem-list { margin:0; }
+    .problem-item {
+      padding: 12px 0;
+      border-bottom: 1px solid var(--border);
     }
+    .problem-item:last-child { border-bottom:none; padding-bottom:0; }
+    .problem-q { font-size:14px; font-weight:700; color:var(--text); margin-bottom:4px; }
+    .problem-a { font-size:14px; color:var(--text-sec); }
 
-    .mini {
-      background: #fff;
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      padding: 14px;
+    /* ── Responsive ── */
+    @media (max-width:860px) {
+      .page { grid-template-columns:1fr; }
+      .sidebar { display:none; }
+      .three-grid { grid-template-columns:1fr; }
     }
-
-    .mini b { display: block; margin-bottom: 4px; }
-    .mini span { color: var(--muted); font-size: 14px; }
-
-    .checklist li::marker { color: var(--primary); }
-
-    @media (max-width: 760px) {
-      .grid { grid-template-columns: 1fr; }
-      h1 { font-size: 24px; }
-      section { padding: 18px; }
+    @media (max-width:520px) {
+      .page { padding:20px 14px 60px; }
+      .header-inner { height:auto; padding:14px 16px; }
+      .page-title { font-size:22px; }
     }
   </style>
 </head>
 <body>
+
   <header>
-    <div class="wrap top">
-      <div>
-        <h1>Faith Content Engine Beginner Guide</h1>
-        <p>A plain-English guide for using the dashboard, backend, and tracking tools.</p>
+    <div class="header-inner">
+      <div class="brand">
+        <div class="brand-logo">
+          <svg viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+        </div>
+        <div class="brand-text">
+          <h1>Faith Content Engine</h1>
+          <p>Consent-first interest profiling for faith platforms</p>
+        </div>
       </div>
-      <a class="back" href="/">Back to Dashboard</a>
+      <a class="back-link" href="/">&#8592; Dashboard</a>
     </div>
   </header>
 
-  <main class="wrap">
-    <section class="callout">
-      <h2>What This Website Is</h2>
-      <p>This website is an admin dashboard for a faith-content personalization engine. It helps you see which approved apps or websites are sending user activity, then turns that activity into anonymous profiles and content recommendations.</p>
-      <p>The short version:</p>
-      <div class="grid">
-        <div class="mini">
-          <b>Vercel dashboard</b>
-          <span>The website you are looking at.</span>
-        </div>
-        <div class="mini">
-          <b>Render API</b>
-          <span>The backend that receives tracking events.</span>
-        </div>
-        <div class="mini">
-          <b>Supabase database</b>
-          <span>Where users, consent, and events are stored.</span>
+  <div class="page">
+
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <div class="sidebar-label">On this page</div>
+      <ul class="sidebar-nav">
+        <li><a href="#what">What This Is</a></li>
+        <li><a href="#urls">Your Live URLs</a></li>
+        <li><a href="#how-to-use">Using the Dashboard</a></li>
+        <li><a href="#numbers">What Numbers Mean</a></li>
+        <li><a href="#test">Test Without a Website</a></li>
+        <li><a href="#known-user">Known User Mode</a></li>
+        <li><a href="#connect">Connect a Real Website</a></li>
+        <li><a href="#sources">Approved Sources</a></li>
+        <li><a href="#privacy">Privacy Rules</a></li>
+        <li><a href="#problems">Common Problems</a></li>
+        <li><a href="#model">Mental Model</a></li>
+      </ul>
+    </aside>
+
+    <!-- Content -->
+    <main class="content">
+      <h1 class="page-title">Beginner Guide</h1>
+      <p class="page-sub">A plain-English guide for using the dashboard, backend, and tracking tools.</p>
+
+      <!-- What this is -->
+      <div class="card card-callout" id="what">
+        <h2><span class="icon">🧭</span> What This Website Is</h2>
+        <p>This is an admin dashboard for a faith-content personalization engine. It shows which approved apps are sending user activity, and turns that activity into anonymous profiles and content recommendations.</p>
+        <div class="three-grid">
+          <div class="mini-card">
+            <strong>Vercel Dashboard</strong>
+            <span>The website you are looking at right now.</span>
+          </div>
+          <div class="mini-card">
+            <strong>Render API</strong>
+            <span>The backend that receives tracking events.</span>
+          </div>
+          <div class="mini-card">
+            <strong>Supabase Database</strong>
+            <span>Where users, consent, and events are stored.</span>
+          </div>
         </div>
       </div>
-    </section>
 
-    <section>
-      <h2>Your Live URLs</h2>
-      <p>These are the two main links in this setup:</p>
-      <pre>Dashboard:
+      <!-- Live URLs -->
+      <div class="card" id="urls">
+        <h2><span class="icon">🔗</span> Your Live URLs</h2>
+        <p>These are the two main links in this setup:</p>
+        <pre>Dashboard:
 https://faith-content-personalization-engin.vercel.app
 
 Backend API:
 https://faith-content-personalization-engine.onrender.com</pre>
-      <p>The dashboard should use the backend API URL in the <code>API Endpoint</code> field.</p>
-    </section>
+        <p style="margin-top:12px">The dashboard should use the backend API URL in the <code>API Endpoint</code> field.</p>
+      </div>
 
-    <section>
-      <h2>How To Use The Dashboard</h2>
-      <ol class="checklist">
-        <li>Open the dashboard URL.</li>
-        <li>Make sure <code>API Endpoint</code> is set to your Render backend URL.</li>
-        <li>Enter your private <code>ADMIN_API_KEY</code> in the Admin Key field.</li>
-        <li>Click <code>Load Stats</code>.</li>
-        <li>The locked source cards will show real users, events, and profile summaries.</li>
-      </ol>
-      <p>Do not share your admin key with normal website visitors. It is only for you or trusted admins.</p>
-    </section>
+      <!-- How to use -->
+      <div class="card" id="how-to-use">
+        <h2><span class="icon">🖥️</span> How To Use The Dashboard</h2>
+        <ol class="steps">
+          <li><span class="step-num">1</span><span class="step-text">Open the dashboard URL.</span></li>
+          <li><span class="step-num">2</span><span class="step-text">Make sure <code>API Endpoint</code> is set to your Render backend URL.</span></li>
+          <li><span class="step-num">3</span><span class="step-text">Enter your private <code>ADMIN_API_KEY</code> in the Admin Key field.</span></li>
+          <li><span class="step-num">4</span><span class="step-text">Click <code>Load Stats</code>.</span></li>
+          <li><span class="step-num">5</span><span class="step-text">The locked source cards will show real users, events, and profile summaries.</span></li>
+        </ol>
+        <p style="margin-top:14px;color:var(--muted);font-size:13px">Do not share your admin key with normal website visitors. It is only for you or trusted admins.</p>
+      </div>
 
-    <section>
-      <h2>What The Dashboard Numbers Mean</h2>
-      <ul>
-        <li><b>Connected Apps:</b> approved sources that are allowed to send activity.</li>
-        <li><b>Total Users:</b> anonymous user profiles created by your app or tests.</li>
-        <li><b>Total Events:</b> tracked actions like viewing content, reading articles, or watching videos.</li>
-        <li><b>Data Retention:</b> how many days the system keeps event data before removing old events.</li>
-      </ul>
-    </section>
+      <!-- Numbers -->
+      <div class="card" id="numbers">
+        <h2><span class="icon">📊</span> What The Dashboard Numbers Mean</h2>
+        <div class="def-list">
+          <div class="def-item">
+            <span class="def-term">Connected Apps</span>
+            <span class="def-desc">Approved sources that are allowed to send activity to the engine.</span>
+          </div>
+          <div class="def-item">
+            <span class="def-term">Total Users</span>
+            <span class="def-desc">Anonymous user profiles created by your app or tests — no real names stored.</span>
+          </div>
+          <div class="def-item">
+            <span class="def-term">Total Events</span>
+            <span class="def-desc">Tracked actions like viewing content, reading articles, or watching videos.</span>
+          </div>
+          <div class="def-item">
+            <span class="def-term">Data Retention</span>
+            <span class="def-desc">How many days the system keeps event data before automatically removing old records.</span>
+          </div>
+        </div>
+      </div>
 
-    <section>
-      <h2>How To Test It Without Another Website</h2>
-      <ol class="checklist">
-        <li>Scroll to <code>Developer Tools</code>.</li>
-        <li>Click <code>Create User</code>.</li>
-        <li>Click <code>Accept Consent</code>.</li>
-        <li>Choose an event type, source, and topic.</li>
-        <li>Click <code>Track Event</code>.</li>
-        <li>Click <code>View Profile</code> to see the generated profile.</li>
-        <li>Go back to the top and click <code>Load Stats</code> again.</li>
-      </ol>
-    </section>
+      <!-- Test without a website -->
+      <div class="card" id="test">
+        <h2><span class="icon">🧪</span> How To Test Without Another Website</h2>
+        <ol class="steps">
+          <li><span class="step-num">1</span><span class="step-text">Scroll to <code>Developer Tools</code> and expand it.</span></li>
+          <li><span class="step-num">2</span><span class="step-text">Click <code>Create User</code> to generate an anonymous profile.</span></li>
+          <li><span class="step-num">3</span><span class="step-text">Click <code>Accept Consent</code> so the user is allowed to be tracked.</span></li>
+          <li><span class="step-num">4</span><span class="step-text">Choose an event type, source, and topic.</span></li>
+          <li><span class="step-num">5</span><span class="step-text">Click <code>Track Event</code>.</span></li>
+          <li><span class="step-num">6</span><span class="step-text">Click <code>View Profile</code> to see the generated interest profile.</span></li>
+          <li><span class="step-num">7</span><span class="step-text">Go back to the top and click <code>Load Stats</code> to see the new user in the admin cards.</span></li>
+        </ol>
+      </div>
 
-    <section>
-      <h2>How To Connect A Real Website</h2>
-      <p>Scroll to <code>Connect Your App or Website</code>. Choose the source for that website, then copy the embed script.</p>
-      <pre>&lt;script src="https://faith-content-personalization-engine.onrender.com/embed.js?source=official_ministry_website"&gt;&lt;/script&gt;</pre>
-      <p>Paste that script into the website you want to track. The script shows a consent banner first. If the user allows personalization, it can send approved activity to the backend.</p>
-    </section>
+      <!-- Known User Mode -->
+      <div class="card" id="known-user">
+        <h2><span class="icon">🪪</span> Known User Mode</h2>
+        <p>By default, this system only uses anonymous IDs like <code>anon_...</code>. <strong>Known User Mode</strong> lets a trusted admin connect an anonymous profile to a real person's name or email — but only after that person has logged in and given explicit consent.</p>
+        <p>Use this only when you have a clear reason to know who the person is, such as helping a logged-in member receive better recommendations.</p>
 
-    <section>
-      <h2>What Counts As An Approved Source</h2>
-      <p>An approved source is a website, app, page, or campaign you trust to send activity into this system.</p>
-      <p>Current examples:</p>
-      <ul>
-        <li><code>healing_school_app</code></li>
-        <li><code>healing_streams_registration_page</code></li>
-        <li><code>approved_healing_school_campaign</code></li>
-        <li><code>official_ministry_website</code></li>
-        <li><code>approved_email_campaign</code></li>
-      </ul>
-    </section>
+        <h3>How to link a known user in the dashboard</h3>
+        <ol class="steps">
+          <li><span class="step-num">1</span><span class="step-text">Create or find the anonymous user ID in Developer Tools.</span></li>
+          <li><span class="step-num">2</span><span class="step-text">Make sure the user has accepted consent.</span></li>
+          <li><span class="step-num">3</span><span class="step-text">Open <code>Developer Tools → Admin Tools</code>.</span></li>
+          <li><span class="step-num">4</span><span class="step-text">Fill in the person's name, email, or external user ID.</span></li>
+          <li><span class="step-num">5</span><span class="step-text">Click <code>Link Known User</code>.</span></li>
+          <li><span class="step-num">6</span><span class="step-text">Click <code>Load Stats</code> to see the name appear on admin profile cards.</span></li>
+        </ol>
 
-    <section>
-      <h2>Privacy Rules</h2>
-      <p>This system is designed to track only consented content activity. It should not collect private messages, passwords, bank details, contacts, microphone recordings, secret browser history, or hidden activity from other apps.</p>
-      <p>If a user turns personalization off or asks to delete their anonymous profile, the dashboard and API include tools for that.</p>
-    </section>
+        <div class="card card-warn" style="margin-top:16px;padding:16px">
+          <h3 style="margin-top:0;color:#92400e">&#9888; Important: never expose your admin key</h3>
+          <p style="margin-bottom:0;font-size:14px">Do not put your admin key inside a public website or mobile app. If a real app needs to link names, its <strong>backend server</strong> should call the protected admin endpoint after login and consent. Normal visitor tracking should stay anonymous.</p>
+        </div>
+      </div>
 
-    <section>
-      <h2>Common Problems</h2>
-      <h3>Stats stay locked</h3>
-      <p>Enter the correct admin key and click <code>Load Stats</code>.</p>
+      <!-- Connect a website -->
+      <div class="card" id="connect">
+        <h2><span class="icon">🌐</span> How To Connect A Real Website</h2>
+        <p>Scroll to <code>Connect Your App or Website</code> on the dashboard. Choose the source for that website, then copy the embed script.</p>
+        <pre>&lt;script src="https://faith-content-personalization-engine.onrender.com/embed.js?source=official_ministry_website"&gt;&lt;/script&gt;</pre>
+        <p style="margin-top:12px">Paste that script into the website you want to track. The script shows a consent banner first. If the user allows personalization, it starts sending approved activity to the backend automatically.</p>
+      </div>
 
-      <h3>API says offline</h3>
-      <p>Check that the API endpoint is exactly <code>https://faith-content-personalization-engine.onrender.com</code>. Render free services can also take a little time to wake up.</p>
+      <!-- Sources -->
+      <div class="card" id="sources">
+        <h2><span class="icon">✅</span> What Counts As An Approved Source</h2>
+        <p>An approved source is a website, app, page, or campaign you trust to send activity into this system.</p>
+        <div class="source-list">
+          <span class="source-pill">healing_school_app</span>
+          <span class="source-pill">healing_streams_registration_page</span>
+          <span class="source-pill">approved_healing_school_campaign</span>
+          <span class="source-pill">official_ministry_website</span>
+          <span class="source-pill">approved_email_campaign</span>
+        </div>
+      </div>
 
-      <h3>Events are rejected</h3>
-      <p>The user may not have accepted consent, or the source name may not be in the approved source list.</p>
+      <!-- Privacy -->
+      <div class="card" id="privacy">
+        <h2><span class="icon">🔒</span> Privacy Rules</h2>
+        <p>This system is designed to track only consented content activity. It should <strong>not</strong> collect:</p>
+        <ul class="styled">
+          <li>Private messages or passwords</li>
+          <li>Bank details or payment information</li>
+          <li>Contacts or microphone recordings</li>
+          <li>Secret browser history or activity from other apps</li>
+        </ul>
+        <p style="margin-top:14px">If a user turns personalization off or asks to delete their profile, the dashboard and API include tools for that.</p>
+      </div>
 
-      <h3>Another website cannot send events</h3>
-      <p>Add that website domain to Render's <code>CORS_ORIGIN</code> environment variable, then redeploy the backend.</p>
-    </section>
+      <!-- Common problems -->
+      <div class="card" id="problems">
+        <h2><span class="icon">🛠️</span> Common Problems</h2>
+        <div class="problem-list">
+          <div class="problem-item">
+            <div class="problem-q">Stats stay locked after clicking Load Stats</div>
+            <div class="problem-a">Make sure you entered the correct admin key. It is case-sensitive and must match the <code>ADMIN_API_KEY</code> environment variable on Render.</div>
+          </div>
+          <div class="problem-item">
+            <div class="problem-q">API chip shows Offline</div>
+            <div class="problem-a">Check that the API endpoint is exactly <code>https://faith-content-personalization-engine.onrender.com</code>. Render free-tier services can take 30–60 seconds to wake up after being idle.</div>
+          </div>
+          <div class="problem-item">
+            <div class="problem-q">Events are rejected</div>
+            <div class="problem-a">The user may not have accepted consent, or the source name may not be in the approved source list.</div>
+          </div>
+          <div class="problem-item">
+            <div class="problem-q">Another website cannot send events</div>
+            <div class="problem-a">Add that website's domain to Render's <code>CORS_ORIGIN</code> environment variable, then redeploy the backend.</div>
+          </div>
+        </div>
+      </div>
 
-    <section class="callout">
-      <h2>Simple Mental Model</h2>
-      <p>Think of it like this: the dashboard is your control room, the Render API is the worker receiving signals, and Supabase is the filing cabinet where the records are kept.</p>
-    </section>
-  </main>
+      <!-- Mental model -->
+      <div class="card card-callout" id="model">
+        <h2><span class="icon">💡</span> Simple Mental Model</h2>
+        <p>Think of it like this:</p>
+        <div class="three-grid">
+          <div class="mini-card">
+            <strong>Dashboard = Control Room</strong>
+            <span>You see stats, manage sources, and test things from here.</span>
+          </div>
+          <div class="mini-card">
+            <strong>Render API = Worker</strong>
+            <span>Receives signals from apps, builds profiles, runs retention.</span>
+          </div>
+          <div class="mini-card">
+            <strong>Supabase = Filing Cabinet</strong>
+            <span>Stores all users, events, consent, and profile data.</span>
+          </div>
+        </div>
+      </div>
+
+    </main>
+  </div>
+
 </body>
 </html>

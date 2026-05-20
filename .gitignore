@@ -6,5 +6,8 @@ data/local-store.sqlite
 data/local-store.sqlite-shm
 data/local-store.sqlite-wal
 data/*.log
+password.txt
 .DS_Store
 npm-debug.log
+
+.vercel

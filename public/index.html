@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Faith Content Engine</title>
+  <title>Faith Content Dashboard</title>
   <style>
     :root {
       --bg: #f1f5f9;
@@ -466,6 +466,318 @@
       .stats-grid { grid-template-columns: 1fr; }
       .header-inner { gap: 10px; }
     }
+
+    /* Modern dashboard refresh */
+    :root {
+      --bg: #f6f8fb;
+      --surface: #ffffff;
+      --surface-soft: #f8fafc;
+      --border: #d9e2ec;
+      --border-strong: #cbd5e1;
+      --primary: #0f766e;
+      --primary-hover: #115e59;
+      --primary-light: #d9fbf3;
+      --text: #102033;
+      --muted: #65758b;
+      --green: #15803d;
+      --green-bg: #ecfdf3;
+      --green-border: #bbf7d0;
+      --yellow: #a16207;
+      --yellow-bg: #fef9c3;
+      --red: #b91c1c;
+      --red-bg: #fef2f2;
+      --navy: #172033;
+      --radius: 8px;
+      --shadow: 0 1px 2px rgba(15, 23, 42, .05), 0 10px 28px rgba(15, 23, 42, .07);
+    }
+
+    body {
+      background:
+        linear-gradient(180deg, #eef6f5 0, #f6f8fb 240px),
+        var(--bg);
+      color: var(--text);
+    }
+
+    header {
+      background: #101827;
+      border-bottom: 1px solid rgba(255,255,255,.08);
+      box-shadow: none;
+    }
+
+    .header-inner {
+      max-width: 1240px;
+      min-height: 76px;
+      padding: 16px 0;
+    }
+
+    .brand h1 {
+      font-size: 20px;
+      letter-spacing: 0;
+    }
+
+    .brand p {
+      color: #b8c4d2;
+      opacity: 1;
+    }
+
+    .page {
+      max-width: 1240px;
+      padding: 24px 24px 72px;
+    }
+
+    .admin-banner,
+    .stat-card,
+    .app-card,
+    .integ-box,
+    .dev-tools {
+      border-color: var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+    }
+
+    .admin-banner {
+      align-items: end;
+      gap: 10px;
+      padding: 16px;
+      margin-top: 24px !important;
+    }
+
+    .admin-banner .banner-label,
+    .field label,
+    .integ-url-label {
+      letter-spacing: 0;
+      text-transform: none;
+    }
+
+    .banner-field {
+      flex: 1 1 260px;
+      min-width: 220px;
+    }
+
+    .banner-field label {
+      display: block;
+      margin-bottom: 6px;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .banner-field input {
+      width: 100%;
+      min-width: 0;
+    }
+
+    button {
+      border-radius: 8px;
+      transition: background .15s, border-color .15s, transform .15s;
+    }
+
+    button:hover { transform: translateY(-1px); }
+
+    .btn-primary {
+      background: var(--primary);
+      box-shadow: 0 8px 18px rgba(15, 118, 110, .18);
+    }
+
+    .btn-secondary { background: #253248; }
+    .btn-ghost {
+      background: #eef3f7;
+      border: 1px solid #d8e2ea;
+    }
+
+    .stats-grid {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 16px;
+    }
+
+    .stat-card {
+      min-height: 124px;
+      padding: 18px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .stat-card::after {
+      content: "";
+      position: absolute;
+      inset: auto 16px 16px auto;
+      width: 34px;
+      height: 4px;
+      border-radius: 99px;
+      background: var(--primary);
+      opacity: .22;
+    }
+
+    .stat-label {
+      font-size: 12px;
+      letter-spacing: 0;
+      text-transform: none;
+    }
+
+    .stat-value {
+      font-size: 34px;
+      letter-spacing: 0;
+    }
+
+    .section-hdr {
+      align-items: end;
+      margin: 30px 0 14px;
+    }
+
+    .section-hdr h2 {
+      font-size: 20px;
+      letter-spacing: 0;
+    }
+
+    .app-card-top { padding: 18px; }
+    .app-icon {
+      display: grid;
+      width: 42px;
+      height: 42px;
+      place-items: center;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: var(--surface-soft);
+      color: var(--primary);
+      font-size: 0;
+      font-weight: 800;
+    }
+
+    .app-icon::after {
+      content: "";
+      width: 17px;
+      height: 17px;
+      border: 2px solid var(--primary);
+      border-radius: 5px;
+      box-shadow: 7px 7px 0 -3px #94a3b8;
+    }
+
+    .app-name { font-size: 17px; }
+    .app-key { font-size: 12px; }
+
+    .app-users-hdr,
+    .app-users-grid,
+    .app-users-empty {
+      background: var(--surface-soft);
+    }
+
+    .user-mini {
+      border-radius: 8px;
+      background: #fff;
+    }
+
+    .integ-toggle,
+    .dev-toggle {
+      padding: 16px 18px;
+    }
+
+    .integ-toggle .badge,
+    .topic-pill,
+    .chip {
+      border-radius: 999px;
+    }
+
+    .workflow-grid,
+    .feature-grid {
+      display: grid;
+      gap: 12px;
+    }
+
+    .workflow-grid {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      margin-bottom: 20px;
+    }
+
+    .workflow-card,
+    .feature-card {
+      background: #fff;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 14px 16px;
+      box-shadow: var(--shadow);
+    }
+
+    .workflow-step {
+      display: inline-grid;
+      width: 28px;
+      height: 28px;
+      place-items: center;
+      border-radius: 8px;
+      background: var(--primary-light);
+      color: var(--primary);
+      font-size: 13px;
+      font-weight: 800;
+      margin-bottom: 10px;
+    }
+
+    .workflow-card > div:first-child {
+      display: inline-grid !important;
+      width: 28px;
+      height: 28px;
+      place-items: center;
+      border-radius: 8px;
+      background: var(--primary-light);
+      color: transparent;
+      font-size: 0 !important;
+      margin-bottom: 10px !important;
+    }
+
+    .workflow-card > div:first-child::after {
+      color: var(--primary);
+      font-size: 13px;
+      font-weight: 800;
+    }
+
+    .workflow-card:nth-child(1) > div:first-child::after { content: "1"; }
+    .workflow-card:nth-child(2) > div:first-child::after { content: "2"; }
+    .workflow-card:nth-child(3) > div:first-child::after { content: "3"; }
+
+    .workflow-card h3,
+    .feature-card h3 {
+      font-size: 14px;
+      margin-bottom: 4px;
+    }
+
+    .workflow-card p,
+    .feature-card p {
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .feature-grid {
+      grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+      margin-bottom: 18px;
+    }
+
+    pre {
+      border-radius: 8px;
+      background: #111827;
+      color: #dbeafe;
+    }
+
+    @media (max-width: 900px) {
+      .stats-grid,
+      .workflow-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+    }
+
+    @media (max-width: 620px) {
+      .page { padding: 16px 14px 56px; }
+      .stats-grid,
+      .workflow-grid {
+        grid-template-columns: 1fr;
+      }
+      .section-hdr {
+        display: block;
+      }
+      .admin-banner {
+        align-items: stretch;
+      }
+      .admin-banner button {
+        width: 100%;
+      }
+    }
   </style>
 </head>
 <body>
@@ -489,8 +801,15 @@
 
     <!-- ── Admin key banner ── -->
     <div class="admin-banner" id="adminBanner" style="margin-top:20px">
-      <span class="banner-label">Admin Key</span>
-      <input type="password" id="adminKeyInput" placeholder="Enter ADMIN_API_KEY to unlock live stats and profiles" />
+      <div class="banner-field">
+        <label for="apiBaseInput">API Endpoint</label>
+        <input id="apiBaseInput" placeholder="https://your-render-service.onrender.com" />
+      </div>
+      <button class="btn-ghost btn-sm" onclick="saveApiBase()">Save API</button>
+      <div class="banner-field">
+        <label for="adminKeyInput">Admin Key</label>
+        <input type="password" id="adminKeyInput" placeholder="Enter ADMIN_API_KEY to unlock stats" />
+      </div>
       <button class="btn-primary btn-sm" onclick="loadStats()">Load Stats</button>
       <span class="banner-status" id="bannerStatus" style="display:none">&#10003; Stats loaded</span>
     </div>
@@ -535,20 +854,20 @@
     </div>
 
     <!-- How it works row -->
-    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:20px">
-      <div style="background:#fff;border:1px solid var(--border);border-radius:var(--radius);padding:16px 18px;box-shadow:var(--shadow)">
+    <div class="workflow-grid">
+      <div class="workflow-card">
         <div style="font-size:22px;margin-bottom:6px">1️⃣</div>
-        <div style="font-weight:700;font-size:14px">User is created</div>
+        <h3>User is created</h3>
         <div style="font-size:13px;color:var(--muted);margin-top:4px">An anonymous ID is generated automatically — no login or PII needed.</div>
       </div>
-      <div style="background:#fff;border:1px solid var(--border);border-radius:var(--radius);padding:16px 18px;box-shadow:var(--shadow)">
+      <div class="workflow-card">
         <div style="font-size:22px;margin-bottom:6px">2️⃣</div>
-        <div style="font-weight:700;font-size:14px">Tracking starts</div>
+        <h3>Consent is recorded</h3>
         <div style="font-size:13px;color:var(--muted);margin-top:4px">Page views, searches, and time on page are captured automatically. No setup needed.</div>
       </div>
-      <div style="background:#fff;border:1px solid var(--border);border-radius:var(--radius);padding:16px 18px;box-shadow:var(--shadow)">
+      <div class="workflow-card">
         <div style="font-size:22px;margin-bottom:6px">3️⃣</div>
-        <div style="font-weight:700;font-size:14px">Signals are tracked</div>
+        <h3>Profiles update</h3>
         <div style="font-size:13px;color:var(--muted);margin-top:4px">Page views, searches, and time spent are sent here and turned into profiles.</div>
       </div>
     </div>
@@ -724,6 +1043,7 @@
 
   </div><!-- /page -->
 
+  <script src="/config.js"></script>
   <script>
     // ─── State ───────────────────────────────────────────────────────────────
     const S = {
@@ -735,13 +1055,39 @@
     };
 
     const $ = id => document.getElementById(id);
+    const normalizeApiBase = value => String(value || '').trim().replace(/\/+$/, '');
+    let API_BASE_URL = normalizeApiBase(
+      window.FAITH_ENGINE_API_URL || localStorage.getItem('faithEngineApiUrl') || ''
+    );
+    const apiBaseInput = $('apiBaseInput');
+    apiBaseInput.value = API_BASE_URL || window.location.origin;
     const adminKeyInput = $('adminKeyInput');
     adminKeyInput.value = localStorage.getItem('adminKey') || '';
     $('devUserId').value = localStorage.getItem('devUserId') || '';
 
     // ─── API ─────────────────────────────────────────────────────────────────
+    function apiPath(path) {
+      return `${API_BASE_URL}${path}`;
+    }
+
+    function saveApiBase() {
+      API_BASE_URL = normalizeApiBase(apiBaseInput.value);
+      if (API_BASE_URL && API_BASE_URL !== window.location.origin) {
+        localStorage.setItem('faithEngineApiUrl', API_BASE_URL);
+      } else {
+        localStorage.removeItem('faithEngineApiUrl');
+        API_BASE_URL = '';
+      }
+
+      apiBaseInput.value = API_BASE_URL || window.location.origin;
+      S.config = null;
+      S.sources = null;
+      S.users = null;
+      boot();
+    }
+
     async function api(path, opts = {}) {
-      const res = await fetch(path, {
+      const res = await fetch(apiPath(path), {
         ...opts,
         headers: { 'Content-Type': 'application/json', ...(opts.headers || {}) }
       });
@@ -1104,7 +1450,7 @@
     }
 
     function getServerUrl() {
-      return window.location.origin;
+      return API_BASE_URL || window.location.origin;
     }
 
     function copyServerUrl() {

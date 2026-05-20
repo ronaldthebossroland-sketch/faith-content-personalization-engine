@@ -7,6 +7,7 @@ The engine tracks approved interest signals, builds an anonymous profile, and re
 ## What changed
 
 - SQLite persistence with `data/local-store.sqlite`
+- Supabase production storage with Render-ready deployment config
 - Admin API key protection for event/consent inspection
 - Approved source validation for app and outside-platform signals
 - Consent history with explicit scopes
@@ -94,11 +95,64 @@ ADMIN_API_KEY=change_me_dev_admin_key
 APPROVED_EVENT_SOURCES=healing_school_app,healing_streams_registration_page,approved_healing_school_campaign,official_ministry_website,approved_email_campaign
 STORAGE_DRIVER=sqlite
 DATA_FILE_PATH=data/local-store.sqlite
+CORS_ORIGIN=*
 GEMINI_MODEL=gemini-1.5-flash
 GEMINI_API_KEY=your_gemini_api_key_here
 ```
 
 `GEMINI_API_KEY` is optional. Without it, the app uses local fallback summaries.
+
+For production on Supabase, set:
+
+```env
+STORAGE_DRIVER=supabase
+SUPABASE_URL=https://your-project-ref.supabase.co
+SUPABASE_SECRET_KEY=sb_secret_your_backend_key
+```
+
+`SUPABASE_SERVICE_ROLE_KEY` is also supported for legacy Supabase service-role keys. Keep either key server-side only.
+
+## Deploy to Render with Supabase
+
+1. Create a Supabase project.
+2. Open the Supabase SQL editor and run `supabase/schema.sql`.
+3. Push this repo to GitHub.
+4. In Render, create a Blueprint from the repo. Render will read `render.yaml`.
+5. Set the secret environment variables Render asks for:
+
+```env
+ADMIN_API_KEY=use_a_long_random_secret
+SUPABASE_URL=https://your-project-ref.supabase.co
+SUPABASE_SECRET_KEY=sb_secret_your_backend_key
+CORS_ORIGIN=https://your-frontend-domain.com
+GEMINI_API_KEY=optional
+```
+
+6. Deploy, then check:
+
+```http
+GET https://your-render-service.onrender.com/api/health
+```
+
+`render.yaml` uses Render's free web-service plan. Free services can sleep when inactive, so the first request after a quiet period may be slower. Upgrade to a paid instance later when you want always-on production behavior.
+
+## Deploy the Dashboard to Vercel
+
+The dashboard in `public/index.html` is configured for Vercel as a static frontend. It should call the Render backend through this Vercel environment variable:
+
+```env
+FAITH_ENGINE_API_URL=https://your-render-service.onrender.com
+```
+
+Vercel reads `vercel.json`, runs `npm run build:frontend`, writes `public/config.js`, and serves the `public` folder.
+
+Current production frontend:
+
+```text
+https://faith-content-personalization-engin.vercel.app
+```
+
+If the API URL is not configured yet, the dashboard has an API Endpoint field at the top where you can paste the Render URL and save it in your browser.
 
 ## Phone testing
 
@@ -203,7 +257,7 @@ The tests cover:
 
 ## Production notes
 
-This now uses a local SQLite database, which is much better than memory-only demo storage. For a deployed multi-server production system, move the storage adapter to PostgreSQL, Supabase, Firebase, or another managed database, and keep the same privacy rules:
+For local development this uses SQLite. For production, use the Supabase driver and keep the same privacy rules:
 
 - explicit consent before tracking
 - approved sources only

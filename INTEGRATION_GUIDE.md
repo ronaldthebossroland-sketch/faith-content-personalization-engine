@@ -863,8 +863,10 @@ When you're ready to go live:
 
 1. Set `BYPASS_CONSENT=false` in `.env`
 2. Change `ADMIN_API_KEY` to something strong and secret
-3. Deploy to any Node.js host (Railway, Render, Fly.io, VPS)
-4. Set `HOST=0.0.0.0` so the server binds correctly
-5. Update your app's API base URL to point at the deployed server
+3. Run `supabase/schema.sql` in your Supabase project's SQL editor
+4. Set `STORAGE_DRIVER=supabase`, `SUPABASE_URL`, and `SUPABASE_SECRET_KEY`
+5. Deploy to Render with the included `render.yaml`
+6. Set `HOST=0.0.0.0` so the server binds correctly
+7. Update your app's API base URL to point at the deployed server
 
-For multi-server production, swap the SQLite adapter for PostgreSQL or Supabase — the privacy logic and all endpoints stay exactly the same.
+For production, Supabase keeps the privacy logic and endpoints the same while moving persistence out of the Render filesystem. Local SQLite remains available for development and tests.

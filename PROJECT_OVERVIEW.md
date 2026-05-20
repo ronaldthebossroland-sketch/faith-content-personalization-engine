@@ -24,7 +24,8 @@ The app can:
 - reset or delete a user profile
 - protect admin event and consent views with an API key
 - retain data according to `DATA_RETENTION_DAYS`
-- persist data in a local SQLite database
+- persist data locally in SQLite or in Supabase for production
+- deploy the backend to Render with the included `render.yaml`
 
 ## Outside-app interest signals
 

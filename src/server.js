@@ -9,6 +9,7 @@ const helmet = require('helmet');
 const morgan = require('morgan');
 const { v4: uuidv4 } = require('uuid');
 const { GoogleGenAI } = require('@google/genai');
+const { createClient: createSupabaseClient } = require('@supabase/supabase-js');
 
 let DatabaseSync = null;
 try {
@@ -148,6 +149,13 @@ const defaultConsentScopes = [
   'ai_summary'
 ];
 
+const supabaseTables = {
+  users: 'faith_users',
+  events: 'faith_events',
+  consentHistory: 'faith_consent_history',
+  contentLibrary: 'faith_content_library'
+};
+
 const topicAliases = {
   healing: 'healing_testimonies',
   testimony: 'healing_testimonies',
@@ -235,10 +243,17 @@ function getConfig(options = {}) {
     'official_ministry_website',
     'approved_email_campaign'
   ];
-  const storageDriver = options.storageDriver || process.env.STORAGE_DRIVER || (DatabaseSync ? 'sqlite' : 'json');
+  const storageDriver = normalizeKey(
+    options.storageDriver || process.env.STORAGE_DRIVER || (DatabaseSync ? 'sqlite' : 'json'),
+    DatabaseSync ? 'sqlite' : 'json'
+  );
   const defaultDataFile = storageDriver === 'sqlite'
     ? path.join(__dirname, '../data/local-store.sqlite')
     : path.join(__dirname, '../data/local-store.json');
+  const supabaseKey = options.supabaseKey
+    ?? options.supabaseServiceRoleKey
+    ?? process.env.SUPABASE_SECRET_KEY
+    ?? process.env.SUPABASE_SERVICE_ROLE_KEY;
 
   return {
     appName: options.appName || process.env.APP_NAME || 'Faith Content Personalization Engine',
@@ -250,7 +265,12 @@ function getConfig(options = {}) {
     dataRetentionDays: parsePositiveInt(options.dataRetentionDays || process.env.DATA_RETENTION_DAYS, 365),
     decayLambda: parsePositiveFloat(options.decayLambda || process.env.DECAY_LAMBDA, 0.02),
     storageDriver,
-    dataFilePath: options.dataFilePath || process.env.DATA_FILE_PATH || defaultDataFile,
+    dataFilePath: storageDriver === 'supabase'
+      ? null
+      : (options.dataFilePath || process.env.DATA_FILE_PATH || defaultDataFile),
+    supabaseUrl: options.supabaseUrl || process.env.SUPABASE_URL,
+    supabaseKey,
+    corsOrigins: parseList(options.corsOrigins || process.env.CORS_ORIGIN, ['*']),
     geminiApiKey: options.geminiApiKey ?? process.env.GEMINI_API_KEY,
     geminiModel: options.geminiModel || process.env.GEMINI_MODEL || 'gemini-1.5-flash',
     logRequests: options.logRequests ?? process.env.NODE_ENV !== 'test',
@@ -445,12 +465,173 @@ function writeSqliteStore(filePath, store) {
   }
 }
 
+function openSupabase(config) {
+  if (!config.supabaseUrl || !config.supabaseKey) {
+    throw new Error('Supabase storage requires SUPABASE_URL and SUPABASE_SECRET_KEY or SUPABASE_SERVICE_ROLE_KEY.');
+  }
+
+  return createSupabaseClient(config.supabaseUrl, config.supabaseKey, {
+    auth: {
+      autoRefreshToken: false,
+      persistSession: false
+    }
+  });
+}
+
+function chunkRows(rows, size = 200) {
+  const chunks = [];
+  for (let i = 0; i < rows.length; i += size) chunks.push(rows.slice(i, i + size));
+  return chunks;
+}
+
+function parseSupabaseData(row) {
+  if (!row?.data) return null;
+  return typeof row.data === 'string' ? JSON.parse(row.data) : row.data;
+}
+
+async function fetchAllSupabaseRows(client, table, columns, orderBy) {
+  const pageSize = 1000;
+  const rows = [];
+
+  for (let from = 0; ; from += pageSize) {
+    let query = client.from(table).select(columns);
+    if (orderBy) query = query.order(orderBy, { ascending: true });
+    query = query.range(from, from + pageSize - 1);
+
+    const { data, error } = await query;
+    if (error) throw new Error(`Supabase ${table} query failed: ${error.message}`);
+    rows.push(...(data || []));
+    if (!data || data.length < pageSize) break;
+  }
+
+  return rows;
+}
+
+async function loadSupabaseStore(config) {
+  const client = openSupabase(config);
+  const [userRows, eventRows, consentRows, contentRows] = await Promise.all([
+    fetchAllSupabaseRows(client, supabaseTables.users, 'data', 'updated_at'),
+    fetchAllSupabaseRows(client, supabaseTables.events, 'data', 'created_at'),
+    fetchAllSupabaseRows(client, supabaseTables.consentHistory, 'data', 'created_at'),
+    fetchAllSupabaseRows(client, supabaseTables.contentLibrary, 'data', 'id')
+  ]);
+
+  const store = createEmptyStore();
+  store.users = {};
+
+  for (const row of userRows) {
+    const user = parseSupabaseData(row);
+    if (user?.anonymousUserId) store.users[user.anonymousUserId] = user;
+  }
+
+  store.events = eventRows.map(parseSupabaseData).filter(Boolean);
+  store.consentHistory = consentRows.map(parseSupabaseData).filter(Boolean);
+
+  if (contentRows.length) {
+    store.contentLibrary = contentRows.map(parseSupabaseData).filter(Boolean);
+  } else {
+    const seedRows = defaultContentLibrary.map(item => ({
+      id: item.id,
+      data: item,
+      updated_at: new Date().toISOString()
+    }));
+    const { error } = await client
+      .from(supabaseTables.contentLibrary)
+      .upsert(seedRows, { onConflict: 'id' });
+    if (error) throw new Error(`Supabase content seed failed: ${error.message}`);
+    store.contentLibrary = defaultContentLibrary;
+  }
+
+  return migrateStore(store);
+}
+
+async function syncSupabaseTable(client, table, idColumn, rows) {
+  for (const chunk of chunkRows(rows)) {
+    const { error } = await client.from(table).upsert(chunk, { onConflict: idColumn });
+    if (error) throw new Error(`Supabase ${table} upsert failed: ${error.message}`);
+  }
+
+  const existingRows = await fetchAllSupabaseRows(client, table, idColumn, idColumn);
+  const currentIds = new Set(rows.map(row => row[idColumn]));
+  const staleIds = existingRows
+    .map(row => row[idColumn])
+    .filter(id => id && !currentIds.has(id));
+
+  for (const chunk of chunkRows(staleIds)) {
+    const { error } = await client.from(table).delete().in(idColumn, chunk);
+    if (error) throw new Error(`Supabase ${table} cleanup failed: ${error.message}`);
+  }
+}
+
+async function writeSupabaseStore(config, rawStore) {
+  const client = openSupabase(config);
+  const store = migrateStore(rawStore);
+  const now = new Date().toISOString();
+
+  await syncSupabaseTable(
+    client,
+    supabaseTables.users,
+    'anonymous_user_id',
+    Object.values(store.users).map(user => ({
+      anonymous_user_id: user.anonymousUserId,
+      data: user,
+      updated_at: user.lastUpdatedAt || user.consentUpdatedAt || user.createdAt || now
+    }))
+  );
+
+  await syncSupabaseTable(
+    client,
+    supabaseTables.contentLibrary,
+    'id',
+    store.contentLibrary.map(item => ({
+      id: item.id,
+      data: item,
+      updated_at: now
+    }))
+  );
+
+  await syncSupabaseTable(
+    client,
+    supabaseTables.consentHistory,
+    'id',
+    store.consentHistory.map(consent => ({
+      id: consent.id,
+      anonymous_user_id: consent.anonymousUserId,
+      data: consent,
+      created_at: consent.createdAt || now
+    }))
+  );
+
+  await syncSupabaseTable(
+    client,
+    supabaseTables.events,
+    'id',
+    store.events.map(event => ({
+      id: event.id,
+      anonymous_user_id: event.anonymousUserId,
+      data: event,
+      created_at: event.createdAt || now
+    }))
+  );
+}
+
 function loadStore(config) {
+  if (config.storageDriver === 'supabase') return createEmptyStore();
   if (config.storageDriver === 'sqlite' && DatabaseSync) return loadSqliteStore(config.dataFilePath);
   return loadJsonStore(config.dataFilePath);
 }
 
-function writeStore(config, store) {
+async function loadStoreAsync(config) {
+  if (config.storageDriver === 'supabase') return loadSupabaseStore(config);
+  return loadStore(config);
+}
+
+async function writeStore(config, store) {
+  if (config.storageDriver === 'supabase') {
+    await writeSupabaseStore(config, store);
+    return;
+  }
+
   if (config.storageDriver === 'sqlite' && DatabaseSync) {
     writeSqliteStore(config.dataFilePath, store);
     return;
@@ -513,12 +694,15 @@ function createRuntime(options = {}) {
   const genAI = isGeminiKeyUsable(config.geminiApiKey)
     ? new GoogleGenAI({ apiKey: config.geminiApiKey })
     : null;
+  let storageReady = false;
+  let storageReadyAt = null;
+  let storageError = null;
 
-  function saveStore() {
-    writeStore(config, store);
+  async function saveStore() {
+    await writeStore(config, store);
   }
 
-  function pruneExpiredEvents() {
+  async function pruneExpiredEvents() {
     const cutoff = Date.now() - (config.dataRetentionDays * 86400000);
     const before = store.events.length;
     store.events = store.events.filter(event => {
@@ -526,7 +710,7 @@ function createRuntime(options = {}) {
       return Number.isFinite(createdAt) && createdAt >= cutoff;
     });
     const removed = before - store.events.length;
-    if (removed > 0) saveStore();
+    if (removed > 0) await saveStore();
     return removed;
   }
 
@@ -778,7 +962,7 @@ Respond only with valid JSON:
   }
 
   async function buildProfile(user) {
-    pruneExpiredEvents();
+    await pruneExpiredEvents();
     const {
       topicScores,
       contentTypeScores,
@@ -878,13 +1062,65 @@ Respond only with valid JSON:
     };
   }
 
-  pruneExpiredEvents();
+  function replaceStoreContents(loadedStore) {
+    const migratedStore = migrateStore(loadedStore);
+    store.users = migratedStore.users;
+    store.events = migratedStore.events;
+    store.consentHistory = migratedStore.consentHistory;
+    store.contentLibrary = migratedStore.contentLibrary;
+  }
+
+  const ready = (async () => {
+    if (config.storageDriver === 'supabase') {
+      replaceStoreContents(await loadStoreAsync(config));
+    }
+
+    await pruneExpiredEvents();
+    storageReady = true;
+    storageReadyAt = new Date().toISOString();
+  })();
+
+  ready.catch(err => {
+    storageError = err;
+    console.error(`Storage initialization failed: ${err.message}`);
+  });
+
+  function buildCorsOptions() {
+    if (config.corsOrigins.includes('*')) return { origin: true };
+
+    return {
+      origin(origin, callback) {
+        if (!origin || config.corsOrigins.includes(origin)) {
+          callback(null, true);
+          return;
+        }
+
+        callback(new Error('Origin is not allowed by CORS.'));
+      }
+    };
+  }
+
+  async function requireStorageReady(req, res, next) {
+    try {
+      await ready;
+      return next();
+    } catch (err) {
+      return res.status(503).json({
+        success: false,
+        message: 'Storage is not ready. Check Supabase environment variables and schema.',
+        error: err.message
+      });
+    }
+  }
 
   const app = express();
+  app.disable('x-powered-by');
+  app.set('trust proxy', 1);
   app.use(helmet({ contentSecurityPolicy: false }));
-  app.use(cors());
+  app.use(cors(buildCorsOptions()));
   app.use(express.json({ limit: '1mb' }));
   if (config.logRequests) app.use(morgan('dev'));
+  app.use(requireStorageReady);
   app.use(express.static(path.join(__dirname, '../public')));
 
   app.get('/embed.js', (req, res) => {
@@ -994,6 +1230,47 @@ Respond only with valid JSON:
     storageSet(CONSENT_KEY, 'false');
   }
 
+  function removeConsentBanner() {
+    var existing = document.getElementById('faith-engine-banner');
+    if (existing && existing.remove) existing.remove();
+  }
+
+  function showConsentBanner() {
+    if (consented || document.getElementById('faith-engine-banner')) return;
+
+    var banner = document.createElement('div');
+    banner.id = 'faith-engine-banner';
+    banner.style.cssText = 'position:fixed;left:16px;right:16px;bottom:16px;z-index:2147483647;max-width:720px;margin:0 auto;background:#0f172a;color:#fff;border-radius:12px;padding:14px 16px;box-shadow:0 12px 40px rgba(15,23,42,.28);font:14px/1.45 system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;';
+    banner.innerHTML =
+      '<div style="font-weight:700;margin-bottom:4px">Personalized faith content</div>' +
+      '<div style="opacity:.86;margin-bottom:12px">Allow this approved platform to use your consented content activity for recommendations. No private messages, contacts, passwords, or hidden activity are collected.</div>' +
+      '<div style="display:flex;gap:8px;flex-wrap:wrap">' +
+        '<button id="fe-accept" style="border:0;border-radius:8px;padding:8px 12px;background:#14b8a6;color:#fff;font-weight:700;cursor:pointer">Allow</button>' +
+        '<button id="fe-decline" style="border:1px solid rgba(255,255,255,.28);border-radius:8px;padding:8px 12px;background:transparent;color:#fff;font-weight:700;cursor:pointer">Not now</button>' +
+      '</div>';
+
+    document.body.appendChild(banner);
+
+    var accept = document.getElementById('fe-accept');
+    var decline = document.getElementById('fe-decline');
+
+    if (accept) {
+      accept.onclick = function () {
+        acceptConsent().then(function () {
+          removeConsentBanner();
+          startTracking();
+        }).catch(function () {});
+      };
+    }
+
+    if (decline) {
+      decline.onclick = function () {
+        declineConsent();
+        removeConsentBanner();
+      };
+    }
+  }
+
   // ── Topic inference from URL ─────────────────────────────────────────────
   function inferTopic(path, search) {
     var text = ((path || '') + ' ' + (search || '')).toLowerCase();
@@ -1094,6 +1371,11 @@ Respond only with valid JSON:
 
   // ── Boot ─────────────────────────────────────────────────────────────────
   function init() {
+    if (!consented) {
+      showConsentBanner();
+      return;
+    }
+
     ensureUser().then(startTracking).catch(function () {});
   }
 
@@ -1118,7 +1400,9 @@ Respond only with valid JSON:
       host: config.host,
       port: config.port,
       storage: config.storageDriver,
-      dataFilePath: config.dataFilePath,
+      storageReady,
+      storageReadyAt,
+      storageTarget: config.storageDriver === 'supabase' ? 'supabase' : config.dataFilePath,
       dataRetentionDays: config.dataRetentionDays,
       geminiEnabled: Boolean(genAI),
       approvedEventSources: config.approvedEventSources,
@@ -1169,7 +1453,7 @@ Respond only with valid JSON:
     try {
       const anonymousUserId = `anon_${uuidv4().replace(/-/g, '').slice(0, 16)}`;
       const user = ensureUser(anonymousUserId, req.body?.preferences || {});
-      saveStore();
+      await saveStore();
       res.status(201).json({ success: true, anonymousUserId, profile: await buildProfile(user) });
     } catch (err) {
       res.status(500).json({ success: false, message: 'Failed to create user.', error: err.message });
@@ -1205,7 +1489,7 @@ Respond only with valid JSON:
         ...(req.body || {})
       });
       user.lastUpdatedAt = new Date().toISOString();
-      saveStore();
+      await saveStore();
 
       res.json({ success: true, message: 'Preferences saved.', profile: await buildProfile(user) });
     } catch (err) {
@@ -1254,7 +1538,7 @@ Respond only with valid JSON:
         createdAt: now
       });
 
-      saveStore();
+      await saveStore();
       res.json({ success: true, message: 'Consent preference saved.', profile: await buildProfile(user) });
     } catch (err) {
       res.status(500).json({ success: false, message: 'Failed to save consent.', error: err.message });
@@ -1325,8 +1609,8 @@ Respond only with valid JSON:
       });
 
       user.lastUpdatedAt = now;
-      pruneExpiredEvents();
-      saveStore();
+      await pruneExpiredEvents();
+      await saveStore();
 
       res.status(201).json({ success: true, message: 'Interest event tracked.', profile: await buildProfile(user) });
     } catch (err) {
@@ -1369,7 +1653,7 @@ Respond only with valid JSON:
 
       user.lastUpdatedAt = new Date().toISOString();
       store.events = store.events.filter(event => event.anonymousUserId !== req.params.anonymousUserId);
-      saveStore();
+      await saveStore();
 
       res.json({ success: true, message: 'Interest profile reset.', profile: await buildProfile(user) });
     } catch (err) {
@@ -1377,25 +1661,33 @@ Respond only with valid JSON:
     }
   });
 
-  app.delete('/api/users/:anonymousUserId', (req, res) => {
-    const user = store.users[req.params.anonymousUserId];
-    if (!user) return res.status(404).json({ success: false, message: 'User not found.' });
+  app.delete('/api/users/:anonymousUserId', async (req, res) => {
+    try {
+      const user = store.users[req.params.anonymousUserId];
+      if (!user) return res.status(404).json({ success: false, message: 'User not found.' });
 
-    delete store.users[req.params.anonymousUserId];
-    store.events = store.events.filter(event => event.anonymousUserId !== req.params.anonymousUserId);
-    store.consentHistory = store.consentHistory.filter(item => item.anonymousUserId !== req.params.anonymousUserId);
-    saveStore();
+      delete store.users[req.params.anonymousUserId];
+      store.events = store.events.filter(event => event.anonymousUserId !== req.params.anonymousUserId);
+      store.consentHistory = store.consentHistory.filter(item => item.anonymousUserId !== req.params.anonymousUserId);
+      await saveStore();
 
-    return res.json({ success: true, message: 'User data deleted.' });
+      return res.json({ success: true, message: 'User data deleted.' });
+    } catch (err) {
+      return res.status(500).json({ success: false, message: 'Failed to delete user.', error: err.message });
+    }
   });
 
-  app.get('/api/admin/events', requireAdmin, (req, res) => {
-    pruneExpiredEvents();
-    res.json({
-      success: true,
-      count: store.events.length,
-      events: store.events.slice(-100).reverse()
-    });
+  app.get('/api/admin/events', requireAdmin, async (req, res) => {
+    try {
+      await pruneExpiredEvents();
+      res.json({
+        success: true,
+        count: store.events.length,
+        events: store.events.slice(-100).reverse()
+      });
+    } catch (err) {
+      res.status(500).json({ success: false, message: 'Failed to load events.', error: err.message });
+    }
   });
 
   app.get('/api/admin/consent-history', requireAdmin, (req, res) => {
@@ -1406,14 +1698,18 @@ Respond only with valid JSON:
     });
   });
 
-  app.post('/api/admin/retention/run', requireAdmin, (req, res) => {
-    const removed = pruneExpiredEvents();
-    res.json({
-      success: true,
-      removed,
-      retainedEvents: store.events.length,
-      dataRetentionDays: config.dataRetentionDays
-    });
+  app.post('/api/admin/retention/run', requireAdmin, async (req, res) => {
+    try {
+      const removed = await pruneExpiredEvents();
+      res.json({
+        success: true,
+        removed,
+        retainedEvents: store.events.length,
+        dataRetentionDays: config.dataRetentionDays
+      });
+    } catch (err) {
+      res.status(500).json({ success: false, message: 'Failed to run retention.', error: err.message });
+    }
   });
 
   app.get('/api/admin/sources', requireAdmin, (req, res) => {
@@ -1516,6 +1812,7 @@ Respond only with valid JSON:
     app,
     config,
     store,
+    ready,
     saveStore,
     pruneExpiredEvents,
     buildProfile
@@ -1523,20 +1820,30 @@ Respond only with valid JSON:
 }
 
 if (require.main === module) {
-  const runtime = createRuntime();
-  runtime.app.listen(runtime.config.port, runtime.config.host, () => {
-    const localUrl = `http://localhost:${runtime.config.port}`;
-    console.log(`${runtime.config.appName} running on ${localUrl}`);
-    if (runtime.config.host === '0.0.0.0') {
-      const lanUrls = getLanUrls(runtime.config.port);
-      if (lanUrls.length) console.log(`Phone/LAN URLs: ${lanUrls.join(', ')}`);
+  (async () => {
+    try {
+      const runtime = createRuntime();
+      await runtime.ready;
+
+      runtime.app.listen(runtime.config.port, runtime.config.host, () => {
+        const localUrl = `http://localhost:${runtime.config.port}`;
+        const storageTarget = runtime.config.dataFilePath || 'managed Supabase tables';
+        console.log(`${runtime.config.appName} running on ${localUrl}`);
+        if (runtime.config.host === '0.0.0.0') {
+          const lanUrls = getLanUrls(runtime.config.port);
+          if (lanUrls.length) console.log(`Phone/LAN URLs: ${lanUrls.join(', ')}`);
+        }
+        console.log(`Storage: ${runtime.config.storageDriver} (${storageTarget})`);
+        console.log(`Approved event sources: ${runtime.config.approvedEventSources.join(', ')}`);
+        if (!runtime.config.adminApiKey) console.warn('ADMIN_API_KEY is not set; admin endpoints are disabled.');
+        if (!isGeminiKeyUsable(runtime.config.geminiApiKey)) console.warn('GEMINI_API_KEY is not set; AI summaries will use local fallback templates.');
+        if (runtime.config.bypassConsent) console.warn('[DEV] BYPASS_CONSENT=true - consent checks are OFF. Set to false before going live.');
+      });
+    } catch (err) {
+      console.error(`Failed to start server: ${err.message}`);
+      process.exit(1);
     }
-    console.log(`Storage: ${runtime.config.storageDriver} (${runtime.config.dataFilePath})`);
-    console.log(`Approved event sources: ${runtime.config.approvedEventSources.join(', ')}`);
-    if (!runtime.config.adminApiKey) console.warn('ADMIN_API_KEY is not set; admin endpoints are disabled.');
-    if (!isGeminiKeyUsable(runtime.config.geminiApiKey)) console.warn('GEMINI_API_KEY is not set; AI summaries will use local fallback templates.');
-    if (runtime.config.bypassConsent) console.warn('[DEV] BYPASS_CONSENT=true — consent checks are OFF. Set to false before going live.');
-  });
+  })();
 }
 
 module.exports = {

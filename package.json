@@ -6,6 +6,7 @@
   "scripts": {
     "start": "node src/server.js",
     "dev": "nodemon src/server.js",
+    "build:frontend": "node scripts/write-frontend-config.js",
     "test": "node --test"
   },
   "keywords": [
@@ -20,6 +21,7 @@
   "dependencies": {
     "@google/genai": "^2.2.0",
     "@google/generative-ai": "^0.24.1",
+    "@supabase/supabase-js": "^2.105.4",
     "cors": "^2.8.5",
     "dotenv": "^16.4.7",
     "express": "^4.21.2",

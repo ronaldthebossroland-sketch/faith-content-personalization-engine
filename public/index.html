@@ -911,7 +911,7 @@
             <strong style="color:var(--green)">✓ SPA navigation</strong><br><span style="color:var(--muted)">Works with React, Next.js, Vue</span>
           </div>
           <div style="background:var(--green-bg);border:1px solid var(--green-border);border-radius:8px;padding:10px 12px;font-size:13px">
-            <strong style="color:var(--green)">✓ No consent gate</strong><br><span style="color:var(--muted)">Tracks immediately — add your own UI later</span>
+            <strong style="color:var(--green)">✓ Consent banner</strong><br><span style="color:var(--muted)">Creates a user only after consent</span>
           </div>
         </div>
 
@@ -923,15 +923,16 @@
 
         <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px;flex-wrap:wrap">
           <label style="font-size:13px;font-weight:700;color:var(--muted);white-space:nowrap">Which app is this website?</label>
-          <select id="embedSource" style="border:1px solid var(--border);border-radius:8px;padding:8px 12px;font:inherit;font-size:14px;background:#fff;flex:1;min-width:180px" onchange="renderSnippet('website')"></select>
+          <select id="embedSource" style="border:1px solid var(--border);border-radius:8px;padding:8px 12px;font:inherit;font-size:14px;background:#fff;flex:1;min-width:180px" onchange="handleSourceChange()"></select>
         </div>
+        <p class="integ-note" id="selectedSourceText" style="margin-top:-8px;margin-bottom:14px"></p>
 
         <div class="integ-snippet">
           <pre id="snippet-website"></pre>
           <button class="copy-btn" onclick="copySnippet('website')">Copy</button>
         </div>
         <p class="integ-note">
-          Paste inside <code>&lt;head&gt;</code> or before <code>&lt;/body&gt;</code> — tracking starts immediately.
+          Paste inside <code>&lt;head&gt;</code> or before <code>&lt;/body&gt;</code> — tracking starts after the visitor accepts the consent banner.
           To add extra events manually call <code>FaithEngine.track(eventType, topic, options)</code> anywhere on the page.
         </p>
       </div>
@@ -1489,10 +1490,27 @@
       });
     }
 
+    function selectedSource() {
+      const embedSrc = $('embedSource');
+      return embedSrc ? (embedSrc.value || 'healing_school_app') : 'healing_school_app';
+    }
+
+    function renderAllSnippets() {
+      ['website', 'js', 'python', 'react', 'rn'].forEach(id => renderSnippet(id));
+      const source = selectedSource();
+      const label = $('selectedSourceText');
+      if (label) {
+        label.innerHTML = `Selected source: <code>${esc(source)}</code>. This is the part that changes in every snippet.`;
+      }
+    }
+
+    function handleSourceChange() {
+      renderAllSnippets();
+    }
+
     function renderSnippet(id) {
       const url = getServerUrl();
-      const embedSrc = $('embedSource');
-      const source = embedSrc ? (embedSrc.value || 'healing_school_app') : 'healing_school_app';
+      const source = selectedSource();
 
       const snippets = {
         website: `<!-- Paste inside <head> or before </body> — that's it! -->
@@ -1688,8 +1706,7 @@ def track(event_type, topic, time_spent_seconds=0, **kwargs):
         ).join('');
       }
 
-      // Render all snippets (website card is open by default, others pre-rendered)
-      ['website', 'js', 'python', 'react', 'rn'].forEach(id => renderSnippet(id));
+      renderAllSnippets();
     }
 
     boot();
